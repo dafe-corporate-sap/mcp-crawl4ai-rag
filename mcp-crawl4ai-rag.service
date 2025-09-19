@@ -1,0 +1,35 @@
+[Unit]
+Description=MCP Crawl4AI RAG Server
+Documentation=https://github.com/your-repo/mcp-crawl4ai-rag
+After=network.target docker.service
+Requires=docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=aitoolset
+Group=aitoolset
+WorkingDirectory=/home/aitoolset/MCP/mcp-crawl4ai-rag
+Environment=PATH=/home/aitoolset/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PYTHONPATH=/home/aitoolset/MCP/mcp-crawl4ai-rag
+ExecStartPre=/usr/bin/python3 /home/aitoolset/MCP/mcp-crawl4ai-rag/setup_local_supabase.py
+ExecStart=/usr/bin/python3 -m src.crawl4ai_mcp
+ExecStop=/usr/bin/docker compose -f /home/aitoolset/MCP/mcp-crawl4ai-rag/docker-compose.yml down
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mcp-crawl4ai-rag
+
+# Reduce security restrictions to allow Docker access
+NoNewPrivileges=false
+PrivateTmp=false
+ProtectSystem=false
+ProtectHome=false
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=8G
+
+[Install]
+WantedBy=multi-user.target

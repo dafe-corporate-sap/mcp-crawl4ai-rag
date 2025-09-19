@@ -35,7 +35,7 @@ def check_docker():
         return False
 
 def create_docker_compose():
-    """Create docker-compose.yml for local Supabase"""
+    """Create docker compose.yml for local Supabase"""
     compose_content = """version: '3.8'
 
 services:
@@ -77,10 +77,10 @@ volumes:
   db_data:
 """
     
-    with open("docker-compose.yml", "w") as f:
+    with open("docker compose.yml", "w") as f:
         f.write(compose_content)
     
-    print("✅ Created docker-compose.yml")
+    print("✅ Created docker compose.yml")
 
 def create_init_sql():
     """Create initialization SQL for the database"""
@@ -306,7 +306,7 @@ def start_services():
     
     try:
         # Start services
-        result = subprocess.run(['docker-compose', 'up', '-d'], capture_output=True, text=True)
+        result = subprocess.run(['docker', 'compose', 'up', '-d'], capture_output=True, text=True)
         if result.returncode == 0:
             print("✅ Services started successfully")
         else:
@@ -318,14 +318,14 @@ def start_services():
         time.sleep(10)
         
         # Check if services are running
-        result = subprocess.run(['docker-compose', 'ps'], capture_output=True, text=True)
+        result = subprocess.run(['docker', 'compose', 'ps'], capture_output=True, text=True)
         print("📋 Service status:")
         print(result.stdout)
         
         return True
         
     except FileNotFoundError:
-        print("❌ docker-compose not found")
+        print("❌ docker compose not found")
         print("   Please install Docker Compose")
         return False
 
@@ -393,9 +393,9 @@ def main():
     print("   Database: postgresql://postgres:postgres@localhost:5433/postgres")
     print("   API: http://localhost:3000")
     print("\n🔧 Management commands:")
-    print("   Stop services: docker-compose down")
-    print("   View logs: docker-compose logs")
-    print("   Restart: docker-compose restart")
+    print("   Stop services: docker compose down")
+    print("   View logs: docker compose logs")
+    print("   Restart: docker compose restart")
     
     print("\n🧪 Test the setup:")
     print("   python test_local_supabase.py")

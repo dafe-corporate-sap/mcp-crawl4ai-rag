@@ -1,0 +1,15 @@
+{
+  "crawl_completed": "2025-09-10 23:57:25",
+  "duration_seconds": 123319.62867856026,
+  "duration_formatted": "34h 15m 20s",
+  "total_pages": 685,
+  "pages_successfully_crawled": 684,
+  "pages_failed": 1,
+  "success_rate": "99.9%",
+  "total_chunks_stored": 130728,
+  "average_chunks_per_page": "191.1",
+  "errors_count": 1,
+  "first_10_errors": [
+    "https://help.sap.com/doc/f53c64b93e5140918d676b927a3cd65b/Cloud/en-US/docs-en/reference/mbt/index.html: Crawl4AI failed: Unexpected error in _crawl_web at line 774 in _crawl_web (../../../../linuxbrew/.linuxbrew/lib/python3.13/site-packages/crawl4ai/async_crawler_strategy.py):\nError: 'AsyncPlaywrightCrawlerStrategy' object has no attribute 'config'\n\nCode context:\n 769                       raise Error(f\"Body element is hidden: {visibility_info}\")\n 770   \n 771               except Error:\n 772                   visibility_info = await self.check_visibility(page)\n 773   \n 774 \u2192                 if self.config.verbose:\n 775                       self.logger.debug(\n 776                           message=\"Body visibility info: {info}\",\n 777                           tag=\"DEBUG\",\n 778                           params={\"info\": visibility_info},\n 779                       )"
+  ]
+}

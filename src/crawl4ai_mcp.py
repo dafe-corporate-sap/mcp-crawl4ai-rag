@@ -26,234 +26,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 ####################################################################################
-# Proper fix for MCP initialization timing issue
-# This handles the "Received request before initialization was complete" error
-####################################################################################
+# Temporary monkeypatch which avoids crashing when a POST message is received
+# before a connection has been initialized, e.g: after a deployment.
+# This is the solution from GitHub issue #423
+# pylint: disable-next=protected-access
+old__received_request = ServerSession._received_request
 
-# Import MCP components for proper error handling
-from mcp.server.session import ServerSession
-from mcp.types import JSONRPCRequest, JSONRPCResponse, JSONRPCError
-
-# Store original method
-_original_received_request = ServerSession._received_request
-
-async def _patched_received_request(self, responder):
-    """
-    Patched version that properly handles initialization timing issues.
-    """
+async def _received_request(self, *args, **kwargs):
     try:
-        return await _original_received_request(self, responder)
+        return await old__received_request(self, *args, **kwargs)
     except RuntimeError as e:
         if "Received request before initialization was complete" in str(e):
-            logger.warning(f"Handling initialization timing issue: {e}")
-            # Just log and return gracefully - don't try to send error responses
-            # as the connection may not be properly established yet
-            return
+            logger.warning(f"Ignoring initialization timing error: {e}")
+            return  # Silently ignore the initialization timing error
         else:
             # Re-raise other RuntimeErrors
             raise e
 
-# Apply the patch
-ServerSession._received_request = _patched_received_request
-
+# Apply the monkeypatch
+# pylint: disable-next=protected-access
+ServerSession._received_request = _received_request
 ####################################################################################
 
 # PostgREST configuration
 POSTGREST_URL = os.getenv("SUPABASE_URL", "http://localhost:3000")
 POSTGREST_TOKEN = os.getenv("SUPABASE_SERVICE_KEY", "")
 
-# SAP BTP AICore configuration
-SAP_BTP_AICORE_BASE_URL = os.getenv("SAP_BTP_AICORE_BASE_URL")
-SAP_BTP_AICORE_AUTH_URL = os.getenv("SAP_BTP_AICORE_AUTH_URL")
-SAP_BTP_AICORE_CLIENT_ID = os.getenv("SAP_BTP_AICORE_CLIENT_ID")
-SAP_BTP_AICORE_CLIENT_SECRET = os.getenv("SAP_BTP_AICORE_CLIENT_SECRET")
-SAP_BTP_AICORE_EMBEDDING_DEPLOYMENT_ID = os.getenv("SAP_BTP_AICORE_EMBEDDING_DEPLOYMENT_ID")
-SAP_BTP_AICORE_EMBEDDING_MODEL = os.getenv("SAP_BTP_AICORE_EMBEDDING_MODEL", "text-embedding-3-large")
-
 # Initialize FastMCP server
 mcp = FastMCP(
     "mcp-crawl4ai-rag-postgrest",
-    description="MCP server with real data storage and SAP BTP AICore embeddings"
+    description="MCP server that works directly with PostgREST API"
 )
-
-# Global variable to store access token
-_access_token = None
-_token_expires_at = 0
-
-async def get_sap_btp_access_token() -> str:
-    """
-    Get access token for SAP BTP AICore.
-    
-    Returns:
-        Access token string
-    """
-    global _access_token, _token_expires_at
-    import time
-    
-    # Check if we have a valid token
-    if _access_token and time.time() < _token_expires_at:
-        return _access_token
-    
-    # Get new token
-    try:
-        auth_data = {
-            "grant_type": "client_credentials",
-            "client_id": SAP_BTP_AICORE_CLIENT_ID.strip("'\""),
-            "client_secret": SAP_BTP_AICORE_CLIENT_SECRET.strip("'\"")
-        }
-        
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{SAP_BTP_AICORE_AUTH_URL}/oauth/token",
-                data=auth_data,
-                headers=headers
-            ) as response:
-                if response.status == 200:
-                    token_data = await response.json()
-                    _access_token = token_data["access_token"]
-                    # Set expiry to 90% of actual expiry for safety
-                    _token_expires_at = time.time() + (token_data.get("expires_in", 3600) * 0.9)
-                    logger.info("Successfully obtained SAP BTP AICore access token")
-                    return _access_token
-                else:
-                    error_text = await response.text()
-                    raise Exception(f"Failed to get access token: HTTP {response.status}: {error_text}")
-                    
-    except Exception as e:
-        logger.error(f"Error getting SAP BTP access token: {e}")
-        raise
-
-async def generate_embedding(text: str) -> List[float]:
-    """
-    Generate embedding using SAP BTP AICore.
-    
-    Args:
-        text: Text to generate embedding for
-        
-    Returns:
-        List of floats representing the embedding vector
-    """
-    # Check if we have orchestration deployment (preferred) or embedding deployment
-    orchestration_deployment_id = os.getenv("SAP_BTP_AICORE_ORCHESTRATION_DEPLOYMENT_ID")
-    embedding_deployment_id = os.getenv("SAP_BTP_AICORE_EMBEDDING_DEPLOYMENT_ID")
-    
-    if not all([SAP_BTP_AICORE_BASE_URL, SAP_BTP_AICORE_AUTH_URL, 
-               SAP_BTP_AICORE_CLIENT_ID, SAP_BTP_AICORE_CLIENT_SECRET]):
-        raise Exception("SAP BTP AICore configuration missing. Please set SAP_BTP_AICORE_BASE_URL, SAP_BTP_AICORE_AUTH_URL, SAP_BTP_AICORE_CLIENT_ID, and SAP_BTP_AICORE_CLIENT_SECRET environment variables.")
-    
-    if not (orchestration_deployment_id or embedding_deployment_id):
-        raise Exception("No deployment ID configured. Please set either SAP_BTP_AICORE_ORCHESTRATION_DEPLOYMENT_ID or SAP_BTP_AICORE_EMBEDDING_DEPLOYMENT_ID environment variable.")
-    
-    access_token = await get_sap_btp_access_token()
-    
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-        "AI-Resource-Group": "default"
-    }
-    
-    # Use orchestration service if available (preferred approach)
-    if orchestration_deployment_id:
-        payload = {
-            "input": {
-                "text": text
-            },
-            "config": {
-                "modules": {
-                    "embeddings": {
-                        "model": {
-                            "name": SAP_BTP_AICORE_EMBEDDING_MODEL,
-                            "params": {
-                                "dimensions": 1536
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        # Use orchestration endpoint directly
-        url = f"https://api.ai.internalprod.eu-central-1.aws.ml.hana.ondemand.com/v2/inference/deployments/{orchestration_deployment_id}/v2/embeddings"
-        
-    else:
-        # Fallback to direct embedding service
-        payload = {
-            "input": text,
-            "model": SAP_BTP_AICORE_EMBEDDING_MODEL
-        }
-        
-        url = f"{SAP_BTP_AICORE_BASE_URL}/v2/inference/deployments/{embedding_deployment_id}/embeddings"
-    
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, headers=headers, json=payload) as response:
-            if response.status == 200:
-                result = await response.json()
-                
-                # Handle orchestration response format
-                if orchestration_deployment_id:
-                    if "final_result" in result:
-                        embeddings_data = result["final_result"]
-                    else:
-                        embeddings_data = result
-                    
-                    if "data" in embeddings_data:
-                        embedding = embeddings_data["data"][0]["embedding"]
-                    elif "embeddings" in embeddings_data:
-                        embedding = embeddings_data["embeddings"][0]
-                    else:
-                        embedding = embeddings_data[0] if isinstance(embeddings_data, list) else embeddings_data
-                else:
-                    # Direct embedding service response
-                    embedding = result["data"][0]["embedding"]
-                
-                logger.info(f"Generated embedding with {len(embedding)} dimensions")
-                return embedding
-            else:
-                error_text = await response.text()
-                raise Exception(f"Failed to generate embedding: HTTP {response.status}: {error_text}")
-
-def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
-    """
-    Split text into overlapping chunks.
-    
-    Args:
-        text: Text to chunk
-        chunk_size: Maximum size of each chunk
-        overlap: Number of characters to overlap between chunks
-        
-    Returns:
-        List of text chunks
-    """
-    if len(text) <= chunk_size:
-        return [text]
-    
-    chunks = []
-    start = 0
-    
-    while start < len(text):
-        end = start + chunk_size
-        
-        # Try to break at a sentence or paragraph boundary
-        if end < len(text):
-            # Look for sentence endings
-            for i in range(end, max(start + chunk_size // 2, end - 200), -1):
-                if text[i] in '.!?\n':
-                    end = i + 1
-                    break
-        
-        chunk = text[start:end].strip()
-        if chunk:
-            chunks.append(chunk)
-        
-        start = end - overlap
-        if start >= len(text):
-            break
-    
-    return chunks
 
 async def make_postgrest_request(endpoint: str, method: str = "GET", data: Dict = None) -> Dict:
     """
@@ -287,23 +90,8 @@ async def make_postgrest_request(endpoint: str, method: str = "GET", data: Dict 
                         raise Exception(f"HTTP {response.status}: {error_text}")
             elif method == "POST":
                 async with session.post(url, headers=headers, json=data) as response:
-                    if response.status in [200, 201]:  # Accept both 200 OK and 201 Created
-                        try:
-                            return await response.json()
-                        except:
-                            # Some POST requests might not return JSON (e.g., 201 Created with empty body)
-                            return {}
-                    else:
-                        error_text = await response.text()
-                        raise Exception(f"HTTP {response.status}: {error_text}")
-            elif method == "PATCH":
-                async with session.patch(url, headers=headers, json=data) as response:
-                    if response.status in [200, 204]:  # Accept 200 OK and 204 No Content
-                        try:
-                            return await response.json()
-                        except:
-                            # PATCH might return empty body
-                            return {}
+                    if response.status == 200:
+                        return await response.json()
                     else:
                         error_text = await response.text()
                         raise Exception(f"HTTP {response.status}: {error_text}")
@@ -368,6 +156,9 @@ async def crawl_single_page(url: str) -> str:
     try:
         logger.info(f"crawl_single_page called with url: '{url}'")
         
+        # For demo purposes, we'll simulate crawling by creating mock content
+        # In a real implementation, you'd use Crawl4AI to actually crawl the page
+        
         # Validate URL
         if not url or not url.strip():
             return json.dumps({
@@ -380,85 +171,49 @@ async def crawl_single_page(url: str) -> str:
         parsed_url = urlparse(url)
         source_id = parsed_url.netloc or parsed_url.path
         
-        # Use Crawl4AI to actually crawl the page
-        try:
-            from crawl4ai import AsyncWebCrawler
-            
-            async with AsyncWebCrawler(verbose=True) as crawler:
-                result = await crawler.arun(url=url)
-                
-                if result.success:
-                    content = result.markdown or result.cleaned_html or "No content extracted"
-                    
-                    # Create metadata
-                    metadata = {
-                        "url": url,
-                        "source": source_id,
-                        "crawl_method": "crawl4ai",
-                        "content_type": "webpage",
-                        "word_count": len(content.split()),
-                        "char_count": len(content),
-                        "title": result.metadata.get("title", ""),
-                        "description": result.metadata.get("description", "")
-                    }
-                    
-                    # TODO: Implement actual storage
-                    # 1. Chunk the content appropriately
-                    # 2. Generate embeddings using SAP BTP AICore
-                    # 3. Store in the database via PostgREST
-                    
-                    logger.info(f"Successfully crawled {url}, content length: {len(content)}")
-                    
-                    return json.dumps({
-                        "success": True,
-                        "url": url,
-                        "source_id": source_id,
-                        "content_length": len(content),
-                        "word_count": metadata["word_count"],
-                        "chunks_stored": 1,  # TODO: Implement actual chunking and storage
-                        "title": metadata["title"],
-                        "note": "Real crawling with Crawl4AI - storage implementation pending"
-                    }, indent=2)
-                else:
-                    return json.dumps({
-                        "success": False,
-                        "url": url,
-                        "error": f"Crawl4AI failed: {result.error_message}"
-                    }, indent=2)
-                    
-        except ImportError:
-            logger.warning("Crawl4AI not installed, falling back to basic HTTP request")
-            
-            # Fallback to basic HTTP request
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        content = await response.text()
-                        
-                        metadata = {
-                            "url": url,
-                            "source": source_id,
-                            "crawl_method": "http_fallback",
-                            "content_type": "webpage",
-                            "word_count": len(content.split()),
-                            "char_count": len(content)
-                        }
-                        
-                        return json.dumps({
-                            "success": True,
-                            "url": url,
-                            "source_id": source_id,
-                            "content_length": len(content),
-                            "word_count": metadata["word_count"],
-                            "chunks_stored": 1,
-                            "note": "Basic HTTP crawling (install crawl4ai for better results) - storage implementation pending"
-                        }, indent=2)
-                    else:
-                        return json.dumps({
-                            "success": False,
-                            "url": url,
-                            "error": f"HTTP {response.status}: {response.reason}"
-                        }, indent=2)
+        # Create mock crawled content
+        mock_content = f"""# Page Content from {url}
+
+This is mock content that would normally be crawled from the webpage.
+In a real implementation, this would use Crawl4AI to extract the actual content.
+
+## Key Information
+- URL: {url}
+- Source: {source_id}
+- Content Type: Web Page
+- Crawl Method: Mock (for demo)
+
+## Sample Content
+This page contains information about various topics that would be useful for RAG queries.
+The content would be properly chunked and stored with embeddings for semantic search.
+"""
+        
+        # Create mock metadata
+        metadata = {
+            "url": url,
+            "source": source_id,
+            "crawl_method": "mock",
+            "content_type": "webpage",
+            "word_count": len(mock_content.split()),
+            "char_count": len(mock_content)
+        }
+        
+        # In a real implementation, you would:
+        # 1. Use Crawl4AI to crawl the actual page
+        # 2. Chunk the content appropriately
+        # 3. Generate embeddings using SAP BTP AICore
+        # 4. Store in the database via PostgREST
+        
+        # For now, return a success response with mock data
+        return json.dumps({
+            "success": True,
+            "url": url,
+            "source_id": source_id,
+            "content_length": len(mock_content),
+            "word_count": metadata["word_count"],
+            "chunks_stored": 1,
+            "note": "Mock crawling for demo - in production this would use Crawl4AI and store real content"
+        }, indent=2)
         
     except Exception as e:
         logger.error(f"Error in crawl_single_page: {e}")
@@ -508,47 +263,30 @@ async def smart_crawl_url(url: str, max_depth: int = 3, max_concurrent: int = 10
         parsed_url = urlparse(url)
         source_id = parsed_url.netloc or parsed_url.path
         
-        # Use real crawling based on URL type
-        pages_crawled = 0
-        chunks_stored = 0
-        
+        # For demo purposes, simulate different crawling strategies
         if crawl_type == "sitemap":
-            # TODO: Implement real sitemap parsing and crawling
-            # For now, just crawl the base URL
-            try:
-                result = await crawl_single_page(url)
-                result_data = json.loads(result)
-                if result_data.get("success"):
-                    pages_crawled = 1
-                    chunks_stored = 1
-            except Exception as e:
-                logger.warning(f"Failed to crawl sitemap URL {url}: {e}")
-                
+            # Mock sitemap crawling
+            mock_urls = [
+                f"{url.replace('sitemap.xml', '')}page1",
+                f"{url.replace('sitemap.xml', '')}page2",
+                f"{url.replace('sitemap.xml', '')}page3"
+            ]
+            pages_crawled = len(mock_urls)
+            chunks_stored = pages_crawled * 2  # Assume 2 chunks per page
         elif crawl_type == "text_file":
-            # Crawl the text file directly
-            try:
-                result = await crawl_single_page(url)
-                result_data = json.loads(result)
-                if result_data.get("success"):
-                    pages_crawled = 1
-                    chunks_stored = 1
-            except Exception as e:
-                logger.warning(f"Failed to crawl text file {url}: {e}")
+            # Mock text file crawling
+            pages_crawled = 1
+            chunks_stored = 1
         else:
-            # For regular webpages, start with the main page
-            try:
-                result = await crawl_single_page(url)
-                result_data = json.loads(result)
-                if result_data.get("success"):
-                    pages_crawled = 1
-                    chunks_stored = 1
-                    
-                # TODO: Implement recursive crawling of internal links
-                # For now, just crawl the main page
-                logger.info(f"Successfully crawled main page {url}")
-                
-            except Exception as e:
-                logger.warning(f"Failed to crawl webpage {url}: {e}")
+            # Mock recursive webpage crawling
+            pages_crawled = min(5, max_depth * 2)  # Simulate finding some internal links
+            chunks_stored = pages_crawled * 3  # Assume 3 chunks per page
+        
+        # In a real implementation, you would:
+        # 1. Parse sitemaps to extract URLs
+        # 2. Use Crawl4AI to crawl pages recursively
+        # 3. Chunk content and generate embeddings
+        # 4. Store everything in the database
         
         return json.dumps({
             "success": True,
@@ -559,7 +297,7 @@ async def smart_crawl_url(url: str, max_depth: int = 3, max_concurrent: int = 10
             "chunks_stored": chunks_stored,
             "max_depth_used": max_depth,
             "max_concurrent_used": max_concurrent,
-            "note": "Real crawling implemented - recursive crawling and storage pending"
+            "note": "Mock crawling for demo - in production this would use Crawl4AI for actual crawling"
         }, indent=2)
         
     except Exception as e:
@@ -567,289 +305,6 @@ async def smart_crawl_url(url: str, max_depth: int = 3, max_concurrent: int = 10
         return json.dumps({
             "success": False,
             "url": url if 'url' in locals() else "unknown",
-            "error": f"Error: {str(e)}"
-        }, indent=2)
-
-@mcp.tool()
-async def crawl_local_files_batch(file_path: str, batch_size: int = 10, recursive: bool = True, file_extensions: str = ".md,.txt,.html,.rst", start_from: str = "") -> str:
-    """
-    Crawl and process files from the local filesystem in batches (iterative).
-    
-    This tool processes local files in batches to handle large repositories efficiently.
-    It processes one batch at a time and returns, allowing the client to call it again
-    to continue processing. This avoids timeout issues with large directories.
-    
-    Args:
-        file_path: Path to file or directory to process
-        batch_size: Number of files to process in this batch (default: 10)
-        recursive: Whether to process subdirectories recursively (default: True)
-        file_extensions: Comma-separated list of file extensions to process (default: ".md,.txt,.html,.rst")
-        start_from: File path to start from (for resumption, empty string starts from beginning)
-    
-    Returns:
-        Summary of the batch processing operation with next file to process
-    """
-    try:
-        logger.info(f"crawl_local_files_batch called with path: '{file_path}', batch_size: {batch_size}, start_from: '{start_from}'")
-        
-        # Validate file path
-        if not file_path or not file_path.strip():
-            return json.dumps({
-                "success": False,
-                "error": "File path cannot be empty"
-            }, indent=2)
-        
-        import os
-        from pathlib import Path
-        
-        path = Path(file_path.strip())
-        
-        # Check if path exists
-        if not path.exists():
-            return json.dumps({
-                "success": False,
-                "error": f"Path does not exist: {file_path}"
-            }, indent=2)
-        
-        # Parse file extensions
-        extensions = [ext.strip() for ext in file_extensions.split(',')]
-        
-        # Collect files to process with consistent sorting
-        files_to_process = []
-        
-        if path.is_file():
-            # Single file
-            if any(str(path).endswith(ext) for ext in extensions):
-                files_to_process.append(path)
-            else:
-                return json.dumps({
-                    "success": False,
-                    "error": f"File extension not supported. Supported: {file_extensions}"
-                }, indent=2)
-        elif path.is_dir():
-            # Directory - collect all files first, then sort for consistency
-            all_files = []
-            if recursive:
-                for ext in extensions:
-                    all_files.extend(path.rglob(f"*{ext}"))
-            else:
-                for ext in extensions:
-                    all_files.extend(path.glob(f"*{ext}"))
-            
-            # Sort files alphabetically for consistent ordering
-            files_to_process = sorted(all_files, key=lambda x: str(x))
-        else:
-            return json.dumps({
-                "success": False,
-                "error": f"Path is neither file nor directory: {file_path}"
-            }, indent=2)
-        
-        if not files_to_process:
-            return json.dumps({
-                "success": False,
-                "error": f"No files found with extensions {file_extensions} in {file_path}"
-            }, indent=2)
-        
-        # Find starting position for resumption
-        start_index = 0
-        if start_from and start_from.strip():
-            start_from_path = Path(start_from.strip())
-            try:
-                start_index = files_to_process.index(start_from_path)
-                logger.info(f"Resuming from file index {start_index}: {start_from}")
-            except ValueError:
-                logger.warning(f"Start file not found in list, starting from beginning: {start_from}")
-                start_index = 0
-        
-        total_files = len(files_to_process)
-        
-        # Check if we're already done
-        if start_index >= total_files:
-            return json.dumps({
-                "success": True,
-                "status": "ALL_FILES_PROCESSED",
-                "path": file_path,
-                "batch_info": {
-                    "total_files_found": total_files,
-                    "batch_size": batch_size,
-                    "files_processed": 0,
-                    "remaining_files": 0
-                },
-                "note": "All files have been processed"
-            }, indent=2)
-        
-        # Process only one batch
-        end_index = min(start_index + batch_size, total_files)
-        batch_files = files_to_process[start_index:end_index]
-        
-        logger.info(f"Processing batch: files {start_index + 1}-{end_index} of {total_files}")
-        
-        # Create or update source entry
-        source_id = f"local:{Path(file_path).name}"
-        
-        # Process files in this batch
-        batch_content_length = 0
-        batch_word_count = 0
-        batch_chunks_stored = 0
-        processed_files = []
-        
-        # Process files concurrently in smaller groups
-        async def process_file(file_path_obj):
-            try:
-                # Read file content
-                with open(file_path_obj, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                if not content.strip():
-                    return None
-                
-                # Create metadata
-                file_url = f"file://{file_path_obj.absolute()}"
-                metadata = {
-                    "file_path": str(file_path_obj),
-                    "file_name": file_path_obj.name,
-                    "file_extension": file_path_obj.suffix,
-                    "source_type": "local_file",
-                    "word_count": len(content.split()),
-                    "char_count": len(content)
-                }
-                
-                # Chunk the content
-                chunks = chunk_text(content, chunk_size=1000, overlap=200)
-                
-                # Process chunks concurrently
-                chunk_tasks = []
-                for chunk_idx, chunk in enumerate(chunks):
-                    chunk_tasks.append(process_chunk(chunk, chunk_idx, file_url, metadata, source_id))
-                
-                # Wait for all chunks to be processed
-                chunk_results = await asyncio.gather(*chunk_tasks, return_exceptions=True)
-                chunks_stored = sum(1 for result in chunk_results if result is True)
-                
-                return {
-                    "file": str(file_path_obj),
-                    "size": len(content),
-                    "words": len(content.split()),
-                    "chunks": len(chunks),
-                    "chunks_stored": chunks_stored,
-                    "content_length": len(content),
-                    "word_count": len(content.split())
-                }
-                
-            except Exception as e:
-                logger.warning(f"Failed to process file {file_path_obj}: {e}")
-                return None
-        
-        async def process_chunk(chunk, chunk_idx, file_url, metadata, source_id):
-            try:
-                # Generate embedding for this chunk
-                embedding = await generate_embedding(chunk)
-                
-                # Prepare data for database
-                chunk_data = {
-                    "url": file_url,
-                    "chunk_number": chunk_idx,
-                    "content": chunk,
-                    "metadata": metadata,
-                    "source_id": source_id,
-                    "embedding": embedding
-                }
-                
-                # Store in database
-                await make_postgrest_request("/crawled_pages", "POST", chunk_data)
-                return True
-                
-            except Exception as e:
-                logger.warning(f"Failed to store chunk {chunk_idx}: {e}")
-                return False
-        
-        # Process files concurrently (but limit concurrency to avoid overwhelming the system)
-        semaphore = asyncio.Semaphore(3)  # Limit to 3 concurrent files
-        
-        async def process_file_with_semaphore(file_path_obj):
-            async with semaphore:
-                return await process_file(file_path_obj)
-        
-        # Process the current batch
-        file_tasks = [process_file_with_semaphore(file_path_obj) for file_path_obj in batch_files]
-        file_results = await asyncio.gather(*file_tasks, return_exceptions=True)
-        
-        # Aggregate results from this batch
-        batch_processed = 0
-        for result in file_results:
-            if result and isinstance(result, dict):
-                processed_files.append(result)
-                batch_content_length += result["content_length"]
-                batch_word_count += result["word_count"]
-                batch_chunks_stored += result["chunks_stored"]
-                batch_processed += 1
-        
-        logger.info(f"Batch completed: {batch_processed}/{len(batch_files)} files processed successfully")
-        
-        # Determine next file to process
-        next_file = None
-        remaining_files = total_files - end_index
-        status = "BATCH_COMPLETED"
-        
-        if end_index < total_files:
-            next_file = str(files_to_process[end_index])
-            status = "MORE_FILES_REMAINING"
-        else:
-            status = "ALL_FILES_PROCESSED"
-        
-        # Update source summary (incremental)
-        try:
-            # Try to get existing source first
-            existing_sources = await make_postgrest_request(f"/sources?source_id=eq.{source_id}")
-            
-            if existing_sources:
-                # Update existing source
-                current_word_count = existing_sources[0].get("total_word_count", 0)
-                new_total = current_word_count + batch_word_count
-                
-                await make_postgrest_request(f"/sources?source_id=eq.{source_id}", "PATCH", {
-                    "total_word_count": new_total
-                })
-                logger.info(f"Updated source {source_id}: {current_word_count} -> {new_total} words")
-            else:
-                # Create new source
-                source_data = {
-                    "source_id": source_id,
-                    "summary": f"Local files from {file_path} (batch processing)",
-                    "total_word_count": batch_word_count
-                }
-                await make_postgrest_request("/sources", "POST", source_data)
-                logger.info(f"Created new source: {source_id}")
-                
-        except Exception as e:
-            logger.warning(f"Failed to update source summary: {e}")
-        
-        return json.dumps({
-            "success": True,
-            "status": status,
-            "path": file_path,
-            "batch_info": {
-                "total_files_found": total_files,
-                "batch_size": batch_size,
-                "files_processed_in_batch": batch_processed,
-                "remaining_files": remaining_files,
-                "start_index": start_index,
-                "end_index": end_index
-            },
-            "batch_content_length": batch_content_length,
-            "batch_word_count": batch_word_count,
-            "batch_chunks_stored": batch_chunks_stored,
-            "source_id": source_id,
-            "processed_files": processed_files[:3],  # Show first 3 files from this batch
-            "next_file": next_file,
-            "note": f"Processed {batch_processed} files in this batch. Use next_file parameter to continue." if next_file else f"All {total_files} files processed successfully!"
-        }, indent=2)
-        
-    except Exception as e:
-        logger.error(f"Error in crawl_local_files_batch: {e}")
-        return json.dumps({
-            "success": False,
-            "path": file_path if 'file_path' in locals() else "unknown",
             "error": f"Error: {str(e)}"
         }, indent=2)
 
@@ -926,106 +381,45 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
                 "error": f"No files found with extensions {file_extensions} in {file_path}"
             }, indent=2)
         
-        # Process files and store in database
+        # Process files
         total_files = len(files_to_process)
         total_content_length = 0
         total_word_count = 0
-        total_chunks_stored = 0
+        total_chunks = 0
         processed_files = []
         
-        # Create or update source entry
-        source_id = f"local:{Path(file_path).name}"
-        
-        for file_path_obj in files_to_process:
+        for file_path_obj in files_to_process[:10]:  # Limit to 10 files for demo
             try:
                 # Read file content
                 with open(file_path_obj, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                if not content.strip():
-                    continue
-                
-                # Create metadata
+                # Create mock metadata
                 file_url = f"file://{file_path_obj.absolute()}"
-                metadata = {
-                    "file_path": str(file_path_obj),
-                    "file_name": file_path_obj.name,
-                    "file_extension": file_path_obj.suffix,
-                    "source_type": "local_file",
-                    "word_count": len(content.split()),
-                    "char_count": len(content)
-                }
+                source_id = f"local:{file_path_obj.parent.name}"
                 
-                # Chunk the content
-                chunks = chunk_text(content, chunk_size=1000, overlap=200)
-                
-                # Store each chunk
-                chunks_stored = 0
-                for chunk_idx, chunk in enumerate(chunks):
-                    try:
-                        # Generate embedding for this chunk
-                        embedding = await generate_embedding(chunk)
-                        
-                        # Prepare data for database
-                        chunk_data = {
-                            "url": file_url,
-                            "chunk_number": chunk_idx,
-                            "content": chunk,
-                            "metadata": metadata,
-                            "source_id": source_id,
-                            "embedding": embedding
-                        }
-                        
-                        # Store in database
-                        await make_postgrest_request("/crawled_pages", "POST", chunk_data)
-                        chunks_stored += 1
-                        
-                    except Exception as e:
-                        logger.warning(f"Failed to store chunk {chunk_idx} of {file_path_obj}: {e}")
-                        continue
+                # Simulate chunking (in real implementation, you'd properly chunk the content)
+                chunks = max(1, len(content) // 1000)  # Rough estimate
                 
                 total_content_length += len(content)
                 total_word_count += len(content.split())
-                total_chunks_stored += chunks_stored
+                total_chunks += chunks
                 
                 processed_files.append({
                     "file": str(file_path_obj),
                     "size": len(content),
                     "words": len(content.split()),
-                    "chunks": len(chunks),
-                    "chunks_stored": chunks_stored
+                    "chunks": chunks
                 })
                 
-                logger.info(f"Processed {file_path_obj}: {chunks_stored} chunks stored")
+                # In a real implementation, you would:
+                # 1. Properly chunk the content
+                # 2. Generate embeddings using SAP BTP AICore
+                # 3. Store in database via PostgREST
                 
             except Exception as e:
                 logger.warning(f"Failed to process file {file_path_obj}: {e}")
                 continue
-        
-        # Update or create source summary
-        try:
-            source_data = {
-                "source_id": source_id,
-                "summary": f"Local files from {file_path}",
-                "total_word_count": total_word_count
-            }
-            
-            # Try to create new source first
-            try:
-                await make_postgrest_request("/sources", "POST", source_data)
-                logger.info(f"Created new source: {source_id}")
-            except Exception as create_error:
-                # If source already exists, try to update it
-                try:
-                    await make_postgrest_request(f"/sources?source_id=eq.{source_id}", "PATCH", {
-                        "total_word_count": total_word_count
-                    })
-                    logger.info(f"Updated existing source: {source_id}")
-                except Exception as update_error:
-                    logger.warning(f"Failed to create or update source {source_id}: create={create_error}, update={update_error}")
-                
-        except Exception as e:
-            logger.warning(f"Failed to update source summary: {e}")
         
         return json.dumps({
             "success": True,
@@ -1034,10 +428,9 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
             "files_processed": len(processed_files),
             "total_content_length": total_content_length,
             "total_word_count": total_word_count,
-            "total_chunks_stored": total_chunks_stored,
-            "source_id": source_id,
+            "total_chunks_estimated": total_chunks,
             "processed_files": processed_files[:5],  # Show first 5 files
-            "note": "Real processing with embeddings and database storage"
+            "note": "Mock processing for demo - in production this would generate embeddings and store in database"
         }, indent=2)
         
     except Exception as e:
@@ -1075,12 +468,13 @@ async def perform_rag_query(query: str, source: str = None, match_count: int = 5
         if match_count <= 0 or match_count > 50:
             match_count = 5
         
-        # Generate embedding for the query using SAP BTP AICore
-        query_embedding = await generate_embedding(query)
+        # For this demo, we'll create a simple mock embedding
+        # In a real implementation, you'd call SAP BTP AICore to create the embedding
+        mock_embedding = [0.1] * 1536  # Mock embedding vector
         
         # Prepare the RPC call data
         rpc_data = {
-            "query_embedding": query_embedding,
+            "query_embedding": mock_embedding,
             "match_count": match_count
         }
         
@@ -1109,7 +503,8 @@ async def perform_rag_query(query: str, source: str = None, match_count: int = 5
             "query": query,
             "source_filter": source,
             "results": formatted_results,
-            "count": len(formatted_results)
+            "count": len(formatted_results),
+            "note": "Using mock embedding for demo - in production this would use SAP BTP AICore"
         }, indent=2)
         
     except Exception as e:

@@ -1,0 +1,119 @@
+#!/bin/bash
+#
+# mcp-crawl4ai-rag   MCP Crawl4AI RAG Server
+#
+# chkconfig: 35 80 20
+# description: MCP Crawl4AI RAG Server with Supabase backend
+#
+# processname: python
+# config: /home/aitoolset/MCP/mcp-crawl4ai-rag/.env
+# pidfile: /var/run/mcp-crawl4ai-rag.pid
+#
+
+. /etc/rc.d/init.d/functions
+
+USER="aitoolset"
+DAEMON="mcp-crawl4ai-rag"
+ROOT_DIR="/home/aitoolset/MCP/mcp-crawl4ai-rag"
+LOCK_FILE="/var/lock/subsys/mcp-crawl4ai-rag"
+PID_FILE="/var/run/mcp-crawl4ai-rag.pid"
+LOG_FILE="/var/log/mcp-crawl4ai-rag.log"
+
+# Export PATH to include uv
+export PATH="/home/aitoolset/.local/bin:$PATH"
+
+start() {
+    if [ -f $LOCK_FILE ]; then
+        echo "MCP Crawl4AI RAG Server is already running"
+        return 1
+    fi
+    
+    echo -n "Starting $DAEMON: "
+    
+    # Setup database first
+    cd $ROOT_DIR
+    su - $USER -c "cd $ROOT_DIR && uv run python setup_local_supabase.py" >> $LOG_FILE 2>&1
+    
+    # Start the MCP server
+    daemon --user "$USER" --pidfile="$PID_FILE" \
+        "cd $ROOT_DIR && uv run python -m src.crawl4ai_mcp >> $LOG_FILE 2>&1 & echo \$! > $PID_FILE"
+    
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $LOCK_FILE
+    return $RETVAL
+}
+
+stop() {
+    if [ ! -f $LOCK_FILE ]; then
+        echo "MCP Crawl4AI RAG Server is not running"
+        return 1
+    fi
+    
+    echo -n "Shutting down $DAEMON: "
+    
+    if [ -f $PID_FILE ]; then
+        PID=$(cat $PID_FILE)
+        kill -TERM $PID
+        sleep 2
+        if kill -0 $PID > /dev/null 2>&1; then
+            kill -KILL $PID
+        fi
+        rm -f $PID_FILE
+    fi
+    
+    # Stop Docker containers
+    cd $ROOT_DIR
+    su - $USER -c "cd $ROOT_DIR && docker compose down" >> $LOG_FILE 2>&1
+    
+    rm -f $LOCK_FILE
+    echo
+    return 0
+}
+
+status() {
+    if [ -f $LOCK_FILE ]; then
+        if [ -f $PID_FILE ]; then
+            PID=$(cat $PID_FILE)
+            if kill -0 $PID > /dev/null 2>&1; then
+                echo "$DAEMON is running (pid $PID)"
+                return 0
+            else
+                echo "$DAEMON is not running but pidfile exists"
+                return 1
+            fi
+        else
+            echo "$DAEMON is not running but lock file exists"
+            return 2
+        fi
+    else
+        echo "$DAEMON is not running"
+        return 3
+    fi
+}
+
+restart() {
+    stop
+    sleep 2
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart)
+        restart
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+esac
+
+exit $?

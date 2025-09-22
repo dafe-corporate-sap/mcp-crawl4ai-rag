@@ -46,6 +46,25 @@ fi
 
 echo "✅ Environment configuration loaded"
 
+# Check if virtual environment exists, create if not
+if [ ! -d ".venv" ]; then
+    echo "🔧 Creating virtual environment..."
+    python3 -m venv .venv
+    echo "✅ Virtual environment created"
+fi
+
+# Activate virtual environment
+source .venv/bin/activate
+echo "✅ Virtual environment activated"
+
+# Install dependencies if needed
+if ! python -c "import mcp" 2>/dev/null; then
+    echo "📦 Installing required dependencies..."
+    python -m pip install --upgrade pip
+    python -m pip install crawl4ai==0.6.2 mcp==1.7.1 supabase==2.15.1 openai==1.71.0 python-dotenv sentence-transformers neo4j
+    echo "✅ Dependencies installed"
+fi
+
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
     echo "❌ Error: Docker is not running!"
@@ -63,7 +82,7 @@ else
     
     # Run the local Supabase setup script
     if [ -f "setup_local_supabase.py" ]; then
-        python3 setup_local_supabase.py
+        python setup_local_supabase.py
         echo "✅ Local Supabase database setup complete"
     else
         echo "❌ Error: setup_local_supabase.py not found!"
@@ -77,7 +96,7 @@ fi
 
 # Test database connection
 echo "🔍 Testing database connection..."
-if python3 -c "
+if python -c "
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -113,7 +132,7 @@ fi
 
 # Test SAP BTP AICore connection
 echo "🔍 Testing SAP BTP AICore connection..."
-if python3 -c "
+if python -c "
 import sys
 import os
 from pathlib import Path
@@ -166,5 +185,5 @@ cleanup() {
 # Set up cleanup trap
 trap cleanup EXIT
 
-# Start the MCP server (updated to use the correct module name)
-python3 -m src.crawl4ai_mcp
+# Start the MCP server (using virtual environment)
+python src/crawl4ai_mcp.py

@@ -606,6 +606,99 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
         }, indent=2)
 
 @mcp.tool()
+async def delete_source(source_id: str) -> str:
+    """
+    Delete a source and all its associated content from the database.
+    
+    This tool removes a source and all crawled pages/code examples associated with it.
+    Use with caution as this operation cannot be undone.
+    
+    Args:
+        source_id: The source ID to delete (e.g., 'local:CPMSCF-docs', 'help.sap.com')
+    
+    Returns:
+        JSON string with deletion summary
+    """
+    try:
+        logger.info(f"delete_source called with source_id: '{source_id}'")
+        
+        # Validate source_id
+        if not source_id or not source_id.strip():
+            return json.dumps({
+                "success": False,
+                "error": "Source ID cannot be empty"
+            }, indent=2)
+        
+        source_id = source_id.strip()
+        
+        # Check if source exists
+        try:
+            sources = await make_postgrest_request(f"/sources?source_id=eq.{source_id}")
+            if not sources:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Source '{source_id}' not found"
+                }, indent=2)
+        except Exception as e:
+            logger.error(f"Error checking source existence: {e}")
+            return json.dumps({
+                "success": False,
+                "error": f"Error checking source: {str(e)}"
+            }, indent=2)
+        
+        deleted_items = {
+            "crawled_pages": 0,
+            "code_examples": 0,
+            "source": 0
+        }
+        
+        # Delete crawled_pages for this source
+        try:
+            await make_postgrest_request(f"/crawled_pages?source_id=eq.{source_id}", "DELETE")
+            deleted_items["crawled_pages"] = "deleted"
+            logger.info(f"Deleted crawled_pages for source: {source_id}")
+        except Exception as e:
+            logger.warning(f"Failed to delete crawled_pages for {source_id}: {e}")
+        
+        # Delete code_examples for this source (if table exists)
+        try:
+            await make_postgrest_request(f"/code_examples?source_id=eq.{source_id}", "DELETE")
+            deleted_items["code_examples"] = "deleted"
+            logger.info(f"Deleted code_examples for source: {source_id}")
+        except Exception as e:
+            logger.warning(f"Failed to delete code_examples for {source_id}: {e}")
+        
+        # Delete the source itself
+        try:
+            await make_postgrest_request(f"/sources?source_id=eq.{source_id}", "DELETE")
+            deleted_items["source"] = "deleted"
+            logger.info(f"Deleted source: {source_id}")
+        except Exception as e:
+            logger.error(f"Failed to delete source {source_id}: {e}")
+            return json.dumps({
+                "success": False,
+                "source_id": source_id,
+                "error": f"Failed to delete source: {str(e)}",
+                "partial_cleanup": deleted_items
+            }, indent=2)
+        
+        logger.info(f"Successfully deleted source: {source_id}")
+        return json.dumps({
+            "success": True,
+            "source_id": source_id,
+            "deleted_items": deleted_items,
+            "message": f"Source '{source_id}' and all associated content successfully deleted"
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"Error in delete_source: {e}")
+        return json.dumps({
+            "success": False,
+            "source_id": source_id if 'source_id' in locals() else "unknown",
+            "error": f"Error: {str(e)}"
+        }, indent=2)
+
+@mcp.tool()
 async def perform_rag_query(query: str, source: str = None, match_count: int = 5) -> str:
     """
     Perform a RAG (Retrieval Augmented Generation) query on the stored content.

@@ -186,4 +186,4 @@ cleanup() {
 trap cleanup EXIT
 
 # Start the MCP server (using virtual environment)
-python src/crawl4ai_mcp.py
+PYTHONPATH=$PYTHONPATH:$(pwd) python src/crawl4ai_mcp.py

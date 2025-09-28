@@ -6,11 +6,48 @@ This version bypasses the Supabase client and makes direct HTTP requests to Post
 import asyncio
 import json
 import os
+import sys
 import logging
-import aiohttp
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dotenv import load_dotenv
+from sap_btp_aicore_client import SAPBTPAICoreClient
+
+try:
+    import aiohttp
+    from aiohttp import web
+except ImportError:
+    print("Error: aiohttp module not found. Please install it using 'pip install aiohttp'.")
+    sys.exit(1)
+
+# Load environment variables
+load_dotenv()
+
+# AI Core configuration
+AI_CORE_URL = os.getenv("AI_CORE_URL")
+AI_CORE_API_KEY = os.getenv("AI_CORE_API_KEY")
+AI_CORE_RESOURCE_GROUP = os.getenv("AI_CORE_RESOURCE_GROUP")
+AI_CORE_DEPLOYMENT_ID = os.getenv("AI_CORE_DEPLOYMENT_ID")
+
+# Initialize AI Core client
+ai_core_client = SAPBTPAICoreClient()
+
+async def get_embedding(text: str) -> List[float]:
+    """
+    Get embedding for the given text using SAP BTP AI Core.
+    
+    Args:
+        text: The text to get embedding for
+    
+    Returns:
+        List of floats representing the embedding
+    """
+    try:
+        response = ai_core_client.create_embeddings([text])
+        return response.embeddings[0]
+    except Exception as e:
+        logger.error(f"Error getting embedding from AI Core: {e}")
+        raise
 
 # Import MCP components
 from mcp.server.fastmcp import FastMCP
@@ -22,28 +59,50 @@ dotenv_path = project_root / '.env'
 load_dotenv(dotenv_path, override=True)
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 ####################################################################################
-# Temporary monkeypatch which avoids crashing when a POST message is received
-# before a connection has been initialized, e.g: after a deployment.
-# This is the solution from GitHub issue #423
+# Enhanced monkeypatch for session management and error logging
 # pylint: disable-next=protected-access
 old__received_request = ServerSession._received_request
 
 async def _received_request(self, *args, **kwargs):
     try:
+        session_id = getattr(self, 'session_id', 'unknown')
+        logger.debug(f"Received request for session {session_id}")
+        logger.debug(f"Request args: {args}")
+        logger.debug(f"Request kwargs: {kwargs}")
+        
+        if not hasattr(self, 'initialized'):
+            logger.info(f"Initializing session {session_id}")
+            await self.initialize()
+            self.initialized = True
+            logger.info(f"Session {session_id} initialized successfully")
+        
         return await old__received_request(self, *args, **kwargs)
-    except RuntimeError as e:
-        if "Received request before initialization was complete" in str(e):
-            logger.warning(f"Ignoring initialization timing error: {e}")
-            return  # Silently ignore the initialization timing error
-        else:
-            # Re-raise other RuntimeErrors
-            raise e
+    except Exception as e:
+        logger.error(f"Error processing request for session {session_id}: {str(e)}")
+        raise
 
-# Apply the monkeypatch
+async def initialize(self):
+    # Add any initialization logic here
+    pass
+
+async def _cleanup_session(self):
+    try:
+        session_id = getattr(self, 'session_id', 'unknown')
+        logger.info(f"Cleaning up session {session_id}")
+        # Add any necessary cleanup logic here
+        logger.info(f"Session {session_id} cleaned up successfully")
+    except Exception as e:
+        logger.error(f"Error cleaning up session {session_id}: {str(e)}")
+
+# Monkey-patch the initialize and cleanup methods
+ServerSession.initialize = initialize
+ServerSession.cleanup = _cleanup_session
+
+# Apply the enhanced monkeypatch
 # pylint: disable-next=protected-access
 ServerSession._received_request = _received_request
 ####################################################################################
@@ -518,8 +577,15 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
             stored_chunks = 0
             failed_chunks = 0
             
-            # Determine consistent source_id
-            main_source_id = f"local:{path.name}"
+            # Determine consistent source_id based on the input path
+            if path.is_file():
+                # For single files, use the parent directory name to match directory processing
+                main_source_id = f"local:{path.parent.name}"
+            else:  
+                # For directories, use the directory name
+                main_source_id = f"local:{path.name}"
+            
+            logger.info(f"Using consistent source_id: {main_source_id} for path: {file_path}")
             
             for i in range(0, len(contents), batch_size):
                 batch_end = min(i + batch_size, len(contents))
@@ -527,8 +593,12 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
                 # Prepare batch data
                 batch_data = []
                 for j in range(i, batch_end):
-                    # Create mock embedding (in real implementation, use SAP BTP AICore)
-                    mock_embedding = [0.1] * 1536
+                    # Generate embedding using SAP BTP AICore
+                    try:
+                        embedding = await get_embedding(contents[j])
+                    except Exception as e:
+                        logger.error(f"Failed to get embedding for chunk {j}: {e}")
+                        embedding = None  # or some default value
                     
                     batch_data.append({
                         "url": urls[j],
@@ -536,7 +606,7 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
                         "content": contents[j],
                         "metadata": metadatas[j],
                         "source_id": main_source_id,  # Use consistent source_id
-                        "embedding": mock_embedding
+                        "embedding": embedding
                     })
                 
                 # Insert batch with proper error handling
@@ -555,29 +625,92 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
                         logger.error(f"Failed to store batch {i//batch_size + 1}: {e}")
                         # Continue with next batch instead of failing completely
             
-            # Update source information
-            source_id = f"local:{path.name}"
+            # Create or update source entry with detailed debugging using consistent source_id
+            source_created = False
+            # Use the same source_id logic as for chunks
+            if path.is_file():
+                source_id = f"local:{path.parent.name}"
+            else:
+                source_id = f"local:{path.name}"
+            
             summary = f"Local files from {file_path} containing {total_word_count} words"
             
+            logger.info(f"Starting source creation process for: {source_id}")
+            
             try:
-                # Try to update existing source
-                source_data = {
-                    "summary": summary,
-                    "total_word_count": total_word_count
-                }
-                await make_postgrest_request(f"/sources?source_id=eq.{source_id}", "PATCH", source_data)
-            except Exception as e:
-                logger.warning(f"Failed to update source, trying to create new: {e}")
-                try:
-                    # Insert new source
+                # First check if source exists
+                logger.info(f"Checking if source exists: {source_id}")
+                existing_sources = await make_postgrest_request(f"/sources?source_id=eq.{source_id}")
+                logger.info(f"Existing sources query result: {existing_sources}")
+                
+                if existing_sources and len(existing_sources) > 0:
+                    # Update existing source
+                    logger.info(f"Updating existing source: {source_id}")
+                    source_data = {
+                        "summary": summary,
+                        "total_word_count": total_word_count
+                    }
+                    result = await make_postgrest_request(f"/sources?source_id=eq.{source_id}", "PATCH", source_data)
+                    logger.info(f"PATCH result: {result}")
+                    source_created = True
+                    logger.info(f"Successfully updated existing source: {source_id}")
+                else:
+                    # Create new source
+                    logger.info(f"Creating new source: {source_id}")
                     source_data = {
                         "source_id": source_id,
                         "summary": summary,
                         "total_word_count": total_word_count
                     }
-                    await make_postgrest_request("/sources", "POST", [source_data])
-                except Exception as e2:
-                    logger.error(f"Failed to create source: {e2}")
+                    logger.info(f"Source data to create: {source_data}")
+                    
+                    result = await make_postgrest_request("/sources", "POST", source_data)
+                    logger.info(f"POST result: {result}")
+                    
+                    # Check if the result indicates success (either has data or is HTTP 201)
+                    if result and (result.get("status") == "created" or result.get("code") == 201):
+                        source_created = True
+                        logger.info(f"Successfully created new source: {source_id} (HTTP 201)")
+                    elif result:
+                        source_created = True
+                        logger.info(f"Successfully created new source: {source_id} (with data)")
+                    else:
+                        logger.warning(f"Unexpected result from source creation: {result}")
+                        
+            except Exception as e:
+                logger.error(f"Exception during source creation for {source_id}: {str(e)}")
+                logger.error(f"Exception type: {type(e).__name__}")
+                # Check if it's actually a success case that's being treated as an error
+                error_str = str(e).lower()
+                if "201" in error_str or "created" in error_str:
+                    logger.info(f"Source creation succeeded despite exception (HTTP 201): {source_id}")
+                    source_created = True
+                else:
+                    source_created = False
+            
+            # Final verification - check if source exists in database
+            try:
+                verification_result = await make_postgrest_request(f"/sources?source_id=eq.{source_id}")
+                if verification_result and len(verification_result) > 0:
+                    logger.info(f"Source verification successful: {source_id} exists in database")
+                    source_created = True
+                else:
+                    logger.error(f"Source verification failed: {source_id} not found in database")
+                    source_created = False
+            except Exception as verify_e:
+                logger.error(f"Source verification error: {verify_e}")
+            
+            if source_created:
+                logger.info(f"✅ Source creation completed successfully: {source_id}")
+            else:
+                logger.error(f"❌ Source creation failed: {source_id}")
+                return json.dumps({
+                    "success": False,
+                    "path": file_path,
+                    "error": f"Failed to create source entry for {source_id}. Chunks were stored but source is missing.",
+                    "chunks_stored": len(contents),
+                    "source_creation_failed": True
+                }, indent=2)
         
         logger.info(f"Successfully processed and stored {len(processed_files)} files")
         
@@ -723,13 +856,19 @@ async def perform_rag_query(query: str, source: str = None, match_count: int = 5
         if match_count <= 0 or match_count > 50:
             match_count = 5
         
-        # For this demo, we'll create a simple mock embedding
-        # In a real implementation, you'd call SAP BTP AICore to create the embedding
-        mock_embedding = [0.1] * 1536  # Mock embedding vector
+        # Generate embedding for the query using SAP BTP AICore
+        try:
+            query_embedding = await get_embedding(query)
+        except Exception as e:
+            logger.error(f"Failed to get embedding for query: {e}")
+            return json.dumps({
+                "success": False,
+                "error": f"Failed to generate embedding for query: {str(e)}"
+            }, indent=2)
         
         # Prepare the RPC call data
         rpc_data = {
-            "query_embedding": mock_embedding,
+            "query_embedding": query_embedding,
             "match_count": match_count
         }
         
@@ -758,8 +897,7 @@ async def perform_rag_query(query: str, source: str = None, match_count: int = 5
             "query": query,
             "source_filter": source,
             "results": formatted_results,
-            "count": len(formatted_results),
-            "note": "Using mock embedding for demo - in production this would use SAP BTP AICore"
+            "count": len(formatted_results)
         }, indent=2)
         
     except Exception as e:
@@ -774,6 +912,27 @@ async def main():
     """Main function to run the MCP server."""
     try:
         logger.info("Starting MCP server with PostgREST integration...")
+        logger.info(f"Server will be available on http://0.0.0.0:8051")
+        
+        # Add more detailed logging
+        logger.debug("MCP server configuration:")
+        logger.debug(f"POSTGREST_URL: {POSTGREST_URL}")
+        logger.debug(f"AI Core URL: {AI_CORE_URL}")
+        
+        # Test PostgREST connection
+        try:
+            await make_postgrest_request("/sources", "GET")
+            logger.info("Successfully connected to PostgREST")
+        except Exception as postgrest_error:
+            logger.error(f"Failed to connect to PostgREST: {postgrest_error}")
+        
+        # Test AI Core connection
+        try:
+            await get_embedding("Test embedding")
+            logger.info("Successfully connected to SAP BTP AICore")
+        except Exception as aicore_error:
+            logger.error(f"Failed to connect to SAP BTP AICore: {aicore_error}")
+        
         await mcp.run_sse_async()
         
     except KeyboardInterrupt:
@@ -782,6 +941,30 @@ async def main():
         logger.error(f"Fatal error in MCP server: {e}")
         raise
 
+# Add a new function to handle incoming connections
+async def handle_connection(request):
+    client_host = request.client.host
+    logger.info(f"Incoming connection from {client_host}")
+    try:
+        # Process the request
+        response = await mcp.handle_request(request)
+        logger.info(f"Successfully processed request from {client_host}")
+        return response
+    except Exception as e:
+        logger.error(f"Error processing request from {client_host}: {str(e)}")
+        # Instead of re-raising the exception, return an error response
+        return aiohttp.web.json_response({"error": "Internal server error"}, status=500)
+
+async def start_server():
+    app = web.Application()
+    app.router.add_route('*', '/{tail:.*}', handle_connection)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 8051)
+    await site.start()
+    logger.info("Server started on http://0.0.0.0:8051")
+    return runner, site
+
 if __name__ == "__main__":
     try:
         asyncio.run(main())
@@ -789,4 +972,3 @@ if __name__ == "__main__":
         logger.info("MCP server stopped by user")
     except Exception as e:
         logger.error(f"Failed to start MCP server: {e}")
-        exit(1)

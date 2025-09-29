@@ -1,0 +1,304 @@
+🚀 Starting MCP Crawl4AI RAG Server with SAP BTP AICore
+==================================================
+✅ Already in mcp-crawl4ai-rag directory
+✅ Environment configuration loaded
+✅ Virtual environment activated
+✅ Docker is running
+🗄️ Setting up local Supabase database...
+🚀 Local Supabase Setup
+========================================
+✅ Docker is installed
+   Version: Docker version 28.4.0, build d8eb465
+✅ Docker daemon is running
+
+📋 Creating configuration files...
+✅ Created docker compose.yml
+✅ Created init.sql
+✅ Updated .env file for local Supabase
+
+🚀 Starting local Supabase services...
+✅ Services started successfully
+⏳ Waiting for services to be ready...
+📋 Service status:
+NAME                           IMAGE                         COMMAND                  SERVICE     CREATED       STATUS                 PORTS
+mcp-crawl4ai-rag-db-1          pgvector/pgvector:pg16        "docker-entrypoint.s…"   db          3 hours ago   Up 3 hours (healthy)   0.0.0.0:5433->5432/tcp
+mcp-crawl4ai-rag-postgrest-1   postgrest/postgrest:v12.0.2   "/bin/postgrest"         postgrest   3 hours ago   Up 3 hours             0.0.0.0:3000->3000/tcp
+
+
+🧪 Testing local Supabase connection...
+✅ PostgREST API is responding
+✅ Database tables accessible
+
+🎉 Local Supabase setup completed!
+
+📋 Service URLs:
+   Database: postgresql://postgres:postgres@localhost:5433/postgres
+   API: http://localhost:3000
+
+🔧 Management commands:
+   Stop services: docker compose down
+   View logs: docker compose logs
+   Restart: docker compose restart
+
+🧪 Test the setup:
+   python test_local_supabase.py
+✅ Local Supabase database setup complete
+⏳ Waiting for database services to start...
+🔍 Testing database connection...
+Database connection successful
+✅ Database connection verified
+🔍 Testing SAP BTP AICore connection...
+SAP BTP AICore client initialized successfully
+✅ SAP BTP AICore connection verified
+🎯 Starting MCP server...
+Server will be available on http://0.0.0.0:8051
+Press Ctrl+C to stop the server
+
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Initializing server 'mcp-crawl4ai-rag-postgrest'
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListToolsRequest
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for CallToolRequest
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourcesRequest
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for ReadResourceRequest
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for PromptListRequest
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for GetPromptRequest
+2025-09-26 15:17:55,428 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourceTemplatesRequest
+2025-09-26 15:17:55,439 - asyncio - DEBUG - Using selector: EpollSelector
+2025-09-26 15:17:55,440 - __main__ - INFO - Starting MCP server with PostgREST integration...
+2025-09-26 15:17:55,440 - __main__ - INFO - Server will be available on http://0.0.0.0:8051
+2025-09-26 15:17:55,440 - __main__ - DEBUG - MCP server configuration:
+2025-09-26 15:17:55,440 - __main__ - DEBUG - POSTGREST_URL: http://localhost:3000
+2025-09-26 15:17:55,440 - __main__ - DEBUG - AI Core URL: None
+2025-09-26 15:17:55,446 - __main__ - INFO - Successfully connected to PostgREST
+2025-09-26 15:17:55,447 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): ms-i039818-2.authentication.sap.hana.ondemand.com:443
+2025-09-26 15:17:55,854 - urllib3.connectionpool - DEBUG - https://ms-i039818-2.authentication.sap.hana.ondemand.com:443 "POST /oauth/token HTTP/1.1" 200 None
+2025-09-26 15:17:55,854 - sap_btp_aicore_client - INFO - Successfully obtained new access token
+2025-09-26 15:17:55,857 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): api.ai.internalprod.eu-central-1.aws.ml.hana.ondemand.com:443
+2025-09-26 15:17:56,079 - urllib3.connectionpool - DEBUG - https://api.ai.internalprod.eu-central-1.aws.ml.hana.ondemand.com:443 "POST /v2/inference/deployments/d762ca029416402a/v2/embeddings HTTP/1.1" 200 34432
+2025-09-26 15:17:56,082 - __main__ - INFO - Successfully connected to SAP BTP AICore
+2025-09-26 15:17:56,082 - mcp.server.sse - DEBUG - SseServerTransport initialized with endpoint: /messages/
+INFO:     Started server process [1792737]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8051 (Press CTRL+C to quit)
+2025-09-26 15:19:22,985 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-26 15:19:22,985 - mcp.server.sse - WARNING - Received request without session_id
+INFO:     127.0.0.1:44002 - "GET /messages/ HTTP/1.1" 400 Bad Request
+2025-09-28 07:04:06,902 - mcp.server.sse - DEBUG - Setting up SSE connection
+2025-09-28 07:04:06,902 - mcp.server.sse - DEBUG - Created new session with ID: fe09d3cf-e5f4-43f9-af1d-74a9290cf571
+2025-09-28 07:04:06,908 - mcp.server.sse - DEBUG - Starting SSE response task
+2025-09-28 07:04:06,908 - mcp.server.sse - DEBUG - Yielding read and write streams
+INFO:     127.0.0.1:54218 - "GET /sse HTTP/1.1" 200 OK
+2025-09-28 07:04:06,910 - mcp.server.sse - DEBUG - Starting SSE writer
+2025-09-28 07:04:06,910 - mcp.server.sse - DEBUG - Sent endpoint event: /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571
+2025-09-28 07:04:06,910 - sse_starlette.sse - DEBUG - chunk: b'event: endpoint\r\ndata: /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571\r\n\r\n'
+2025-09-28 07:04:06,915 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:04:06,915 - mcp.server.sse - DEBUG - Parsed session ID: fe09d3cf-e5f4-43f9-af1d-74a9290cf571
+2025-09-28 07:04:06,916 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"Cline","version":"3.31.1"}},"jsonrpc":"2.0","id":0}'
+2025-09-28 07:04:06,916 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-03-26', 'capabilities': {}, 'clientInfo': {'name': 'Cline', 'version': '3.31.1'}}, jsonrpc='2.0', id=0)
+2025-09-28 07:04:06,916 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-03-26', 'capabilities': {}, 'clientInfo': {'name': 'Cline', 'version': '3.31.1'}}, jsonrpc='2.0', id=0)
+INFO:     127.0.0.1:54222 - "POST /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571 HTTP/1.1" 202 Accepted
+2025-09-28 07:04:06,917 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:04:06,917 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c4ef2870>,)
+2025-09-28 07:04:06,917 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:04:06,917 - __main__ - INFO - Initializing session unknown
+2025-09-28 07:04:06,917 - __main__ - INFO - Session unknown initialized successfully
+2025-09-28 07:04:06,917 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2024-11-05', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': 'mcp-crawl4ai-rag-postgrest', 'version': '1.7.1'}})
+2025-09-28 07:04:06,918 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2024-11-05","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"mcp-crawl4ai-rag-postgrest","version":"1.7.1"}}}\r\n\r\n'
+2025-09-28 07:04:06,922 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:04:06,922 - mcp.server.sse - DEBUG - Parsed session ID: fe09d3cf-e5f4-43f9-af1d-74a9290cf571
+2025-09-28 07:04:06,922 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"notifications/initialized","jsonrpc":"2.0"}'
+2025-09-28 07:04:06,922 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2025-09-28 07:04:06,922 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+INFO:     127.0.0.1:54232 - "POST /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571 HTTP/1.1" 202 Accepted
+2025-09-28 07:04:06,923 - mcp.server.lowlevel.server - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2025-09-28 07:04:06,926 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:04:06,926 - mcp.server.sse - DEBUG - Parsed session ID: fe09d3cf-e5f4-43f9-af1d-74a9290cf571
+2025-09-28 07:04:06,926 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"tools/list","jsonrpc":"2.0","id":1}'
+2025-09-28 07:04:06,926 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)
+2025-09-28 07:04:06,926 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)
+INFO:     127.0.0.1:54244 - "POST /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571 HTTP/1.1" 202 Accepted
+2025-09-28 07:04:06,926 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:04:06,926 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c4559f40>,)
+2025-09-28 07:04:06,926 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:04:06,927 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x7324c4559f40>
+2025-09-28 07:04:06,927 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-09-28 07:04:06,927 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListToolsRequest
+2025-09-28 07:04:06,927 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-09-28 07:04:06,927 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'tools': [{'name': 'get_available_sources', 'description': '\n    Get all available sources from the sources table.\n    \n    Returns:\n        JSON string with the list of available sources and their details\n    ', 'inputSchema': {'properties': {}, 'title': 'get_available_sourcesArguments', 'type': 'object'}}, {'name': 'crawl_single_page', 'description': '\n    Crawl a single web page and store its content in the database.\n    \n    This tool crawls a single webpage and stores the content in the database\n    for later retrieval and querying via RAG.\n    \n    Args:\n        url: URL of the web page to crawl\n    \n    Returns:\n        Summary of the crawling operation and storage\n    ', 'inputSchema': {'properties': {'url': {'title': 'Url', 'type': 'string'}}, 'required': ['url'], 'title': 'crawl_single_pageArguments', 'type': 'object'}}, {'name': 'smart_crawl_url', 'description': '\n    Intelligently crawl a URL based on its type and store content.\n    \n    This tool automatically detects the URL type and applies the appropriate crawling method:\n    - For sitemaps: Extracts and crawls all URLs in parallel\n    - For text files: Directly retrieves the content\n    - For regular webpages: Recursively crawls internal links up to the specified depth\n    \n    Args:\n        url: URL to crawl (can be a regular webpage, sitemap.xml, or .txt file)\n        max_depth: Maximum recursion depth for regular URLs (default: 3)\n        max_concurrent: Maximum number of concurrent sessions (default: 10)\n    \n    Returns:\n        JSON string with crawl summary and storage information\n    ', 'inputSchema': {'properties': {'url': {'title': 'Url', 'type': 'string'}, 'max_depth': {'default': 3, 'title': 'Max Depth', 'type': 'integer'}, 'max_concurrent': {'default': 10, 'title': 'Max Concurrent', 'type': 'integer'}}, 'required': ['url'], 'title': 'smart_crawl_urlArguments', 'type': 'object'}}, {'name': 'crawl_local_files', 'description': '\n    Crawl and process files from the local filesystem.\n    \n    This tool processes local files (markdown, text, HTML, etc.) and stores their content\n    in the database for RAG queries. Useful for processing local documentation.\n    \n    Args:\n        file_path: Path to file or directory to process\n        recursive: Whether to process subdirectories recursively (default: True)\n        file_extensions: Comma-separated list of file extensions to process (default: ".md,.txt,.html,.rst")\n    \n    Returns:\n        Summary of the local file processing operation\n    ', 'inputSchema': {'properties': {'file_path': {'title': 'File Path', 'type': 'string'}, 'recursive': {'default': True, 'title': 'Recursive', 'type': 'boolean'}, 'file_extensions': {'default': '.md,.txt,.html,.rst', 'title': 'File Extensions', 'type': 'string'}}, 'required': ['file_path'], 'title': 'crawl_local_filesArguments', 'type': 'object'}}, {'name': 'delete_source', 'description': "\n    Delete a source and all its associated content from the database.\n    \n    This tool removes a source and all crawled pages/code examples associated with it.\n    Use with caution as this operation cannot be undone.\n    \n    Args:\n        source_id: The source ID to delete (e.g., 'local:CPMSCF-docs', 'help.sap.com')\n    \n    Returns:\n        JSON string with deletion summary\n    ", 'inputSchema': {'properties': {'source_id': {'title': 'Source Id', 'type': 'string'}}, 'required': ['source_id'], 'title': 'delete_sourceArguments', 'type': 'object'}}, {'name': 'perform_rag_query', 'description': "\n    Perform a RAG (Retrieval Augmented Generation) query on the stored content.\n    \n    Args:\n        query: The search query\n        source: Optional source domain to filter results (e.g., 'example.com')\n        match_count: Maximum number of results to return (default: 5)\n    \n    Returns:\n        JSON string with the search results\n    ", 'inputSchema': {'properties': {'query': {'title': 'Query', 'type': 'string'}, 'source': {'default': None, 'title': 'Source', 'type': 'string'}, 'match_count': {'default': 5, 'title': 'Match Count', 'type': 'integer'}}, 'required': ['query'], 'title': 'perform_rag_queryArguments', 'type': 'object'}}]})
+2025-09-28 07:04:06,928 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"get_available_sources","description":"\\n    Get all available sources from the sources table.\\n    \\n    Returns:\\n        JSON string with the list of available sources and their details\\n    ","inputSchema":{"properties":{},"title":"get_available_sourcesArguments","type":"object"}},{"name":"crawl_single_page","description":"\\n    Crawl a single web page and store its content in the database.\\n    \\n    This tool crawls a single webpage and stores the content in the database\\n    for later retrieval and querying via RAG.\\n    \\n    Args:\\n        url: URL of the web page to crawl\\n    \\n    Returns:\\n        Summary of the crawling operation and storage\\n    ","inputSchema":{"properties":{"url":{"title":"Url","type":"string"}},"required":["url"],"title":"crawl_single_pageArguments","type":"object"}},{"name":"smart_crawl_url","description":"\\n    Intelligently crawl a URL based on its type and store content.\\n    \\n    This tool automatically detects the URL type and applies the appropriate crawling method:\\n    - For sitemaps: Extracts and crawls all URLs in parallel\\n    - For text files: Directly retrieves the content\\n    - For regular webpages: Recursively crawls internal links up to the specified depth\\n    \\n    Args:\\n        url: URL to crawl (can be a regular webpage, sitemap.xml, or .txt file)\\n        max_depth: Maximum recursion depth for regular URLs (default: 3)\\n        max_concurrent: Maximum number of concurrent sessions (default: 10)\\n    \\n    Returns:\\n        JSON string with crawl summary and storage information\\n    ","inputSchema":{"properties":{"url":{"title":"Url","type":"string"},"max_depth":{"default":3,"title":"Max Depth","type":"integer"},"max_concurrent":{"default":10,"title":"Max Concurrent","type":"integer"}},"required":["url"],"title":"smart_crawl_urlArguments","type":"object"}},{"name":"crawl_local_files","description":"\\n    Crawl and process files from the local filesystem.\\n    \\n    This tool processes local files (markdown, text, HTML, etc.) and stores their content\\n    in the database for RAG queries. Useful for processing local documentation.\\n    \\n    Args:\\n        file_path: Path to file or directory to process\\n        recursive: Whether to process subdirectories recursively (default: True)\\n        file_extensions: Comma-separated list of file extensions to process (default: \\".md,.txt,.html,.rst\\")\\n    \\n    Returns:\\n        Summary of the local file processing operation\\n    ","inputSchema":{"properties":{"file_path":{"title":"File Path","type":"string"},"recursive":{"default":true,"title":"Recursive","type":"boolean"},"file_extensions":{"default":".md,.txt,.html,.rst","title":"File Extensions","type":"string"}},"required":["file_path"],"title":"crawl_local_filesArguments","type":"object"}},{"name":"delete_source","description":"\\n    Delete a source and all its associated content from the database.\\n    \\n    This tool removes a source and all crawled pages/code examples associated with it.\\n    Use with caution as this operation cannot be undone.\\n    \\n    Args:\\n        source_id: The source ID to delete (e.g., \'local:CPMSCF-docs\', \'help.sap.com\')\\n    \\n    Returns:\\n        JSON string with deletion summary\\n    ","inputSchema":{"properties":{"source_id":{"title":"Source Id","type":"string"}},"required":["source_id"],"title":"delete_sourceArguments","type":"object"}},{"name":"perform_rag_query","description":"\\n    Perform a RAG (Retrieval Augmented Generation) query on the stored content.\\n    \\n    Args:\\n        query: The search query\\n        source: Optional source domain to filter results (e.g., \'example.com\')\\n        match_count: Maximum number of results to return (default: 5)\\n    \\n    Returns:\\n        JSON string with the search results\\n    ","inputSchema":{"properties":{"query":{"title":"Query","type":"string"},"source":{"default":null,"title":"Source","type":"string"},"match_count":{"default":5,"title":"Match Count","type":"integer"}},"required":["query"],"title":"perform_rag_queryArguments","type":"object"}}]}}\r\n\r\n'
+2025-09-28 07:04:06,932 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:04:06,932 - mcp.server.sse - DEBUG - Parsed session ID: fe09d3cf-e5f4-43f9-af1d-74a9290cf571
+2025-09-28 07:04:06,932 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"resources/list","jsonrpc":"2.0","id":2}'
+2025-09-28 07:04:06,932 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='resources/list', params=None, jsonrpc='2.0', id=2)
+2025-09-28 07:04:06,932 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='resources/list', params=None, jsonrpc='2.0', id=2)
+INFO:     127.0.0.1:54256 - "POST /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571 HTTP/1.1" 202 Accepted
+2025-09-28 07:04:06,932 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:04:06,932 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c4559bb0>,)
+2025-09-28 07:04:06,932 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:04:06,933 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x7324c4559bb0>
+2025-09-28 07:04:06,933 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2025-09-28 07:04:06,933 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListResourcesRequest
+2025-09-28 07:04:06,933 - mcp.server.fastmcp.resources.resource_manager - DEBUG - Listing resources
+2025-09-28 07:04:06,933 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-09-28 07:04:06,933 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'resources': []})
+2025-09-28 07:04:06,933 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":2,"result":{"resources":[]}}\r\n\r\n'
+2025-09-28 07:04:06,936 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:04:06,936 - mcp.server.sse - DEBUG - Parsed session ID: fe09d3cf-e5f4-43f9-af1d-74a9290cf571
+2025-09-28 07:04:06,936 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"resources/templates/list","jsonrpc":"2.0","id":3}'
+2025-09-28 07:04:06,936 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='resources/templates/list', params=None, jsonrpc='2.0', id=3)
+2025-09-28 07:04:06,936 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='resources/templates/list', params=None, jsonrpc='2.0', id=3)
+INFO:     127.0.0.1:54262 - "POST /messages/?session_id=fe09d3cfe5f443f9af1d74a9290cf571 HTTP/1.1" 202 Accepted
+2025-09-28 07:04:06,937 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:04:06,937 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c455b410>,)
+2025-09-28 07:04:06,937 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:04:06,937 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x7324c455b410>
+2025-09-28 07:04:06,937 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourceTemplatesRequest
+2025-09-28 07:04:06,937 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListResourceTemplatesRequest
+2025-09-28 07:04:06,937 - mcp.server.fastmcp.resources.resource_manager - DEBUG - Listing templates
+2025-09-28 07:04:06,937 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-09-28 07:04:06,937 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=3, result={'resourceTemplates': []})
+2025-09-28 07:04:06,937 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":3,"result":{"resourceTemplates":[]}}\r\n\r\n'
+2025-09-28 07:04:21,911 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:04:21.911103+00:00\r\n\r\n'
+2025-09-28 07:04:36,912 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:04:36.912615+00:00\r\n\r\n'
+2025-09-28 07:04:51,914 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:04:51.914260+00:00\r\n\r\n'
+2025-09-28 07:05:06,915 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:05:06.915303+00:00\r\n\r\n'
+2025-09-28 07:05:21,916 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:05:21.916741+00:00\r\n\r\n'
+2025-09-28 07:05:36,917 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:05:36.917334+00:00\r\n\r\n'
+2025-09-28 07:05:51,919 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:05:51.919407+00:00\r\n\r\n'
+2025-09-28 07:06:06,920 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:06:06.920070+00:00\r\n\r\n'
+2025-09-28 07:06:21,921 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:06:21.921349+00:00\r\n\r\n'
+2025-09-28 07:06:36,922 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:06:36.922268+00:00\r\n\r\n'
+2025-09-28 07:06:51,923 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:06:51.923596+00:00\r\n\r\n'
+2025-09-28 07:07:06,925 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:07:06.925172+00:00\r\n\r\n'
+2025-09-28 07:07:21,927 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:07:21.927443+00:00\r\n\r\n'
+2025-09-28 07:07:36,928 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:07:36.928190+00:00\r\n\r\n'
+2025-09-28 07:07:51,929 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:07:51.929775+00:00\r\n\r\n'
+2025-09-28 07:08:06,931 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:08:06.931303+00:00\r\n\r\n'
+2025-09-28 07:08:21,931 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:08:21.931876+00:00\r\n\r\n'
+2025-09-28 07:08:36,934 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:08:36.934285+00:00\r\n\r\n'
+2025-09-28 07:08:51,935 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:08:51.935436+00:00\r\n\r\n'
+2025-09-28 07:09:06,937 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:09:06.937106+00:00\r\n\r\n'
+2025-09-28 07:09:21,938 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:09:21.938419+00:00\r\n\r\n'
+2025-09-28 07:09:36,939 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:09:36.939799+00:00\r\n\r\n'
+2025-09-28 07:09:51,941 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:09:51.941309+00:00\r\n\r\n'
+2025-09-28 07:10:06,942 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:10:06.942242+00:00\r\n\r\n'
+2025-09-28 07:10:21,943 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:10:21.942961+00:00\r\n\r\n'
+2025-09-28 07:10:36,943 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:10:36.943600+00:00\r\n\r\n'
+2025-09-28 07:10:51,944 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:10:51.944637+00:00\r\n\r\n'
+2025-09-28 07:11:06,945 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:11:06.945280+00:00\r\n\r\n'
+2025-09-28 07:11:21,946 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:11:21.946096+00:00\r\n\r\n'
+2025-09-28 07:11:36,947 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:11:36.947166+00:00\r\n\r\n'
+2025-09-28 07:11:51,948 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:11:51.948354+00:00\r\n\r\n'
+2025-09-28 07:12:06,949 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:12:06.949362+00:00\r\n\r\n'
+2025-09-28 07:12:21,951 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:12:21.951463+00:00\r\n\r\n'
+2025-09-28 07:12:36,952 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:12:36.952876+00:00\r\n\r\n'
+2025-09-28 07:12:51,954 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:12:51.954830+00:00\r\n\r\n'
+2025-09-28 07:13:06,956 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:13:06.956411+00:00\r\n\r\n'
+2025-09-28 07:13:21,957 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:13:21.957800+00:00\r\n\r\n'
+2025-09-28 07:13:36,959 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:13:36.959344+00:00\r\n\r\n'
+2025-09-28 07:13:51,961 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:13:51.961078+00:00\r\n\r\n'
+2025-09-28 07:14:06,962 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:14:06.962384+00:00\r\n\r\n'
+2025-09-28 07:14:21,963 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:14:21.963390+00:00\r\n\r\n'
+2025-09-28 07:14:36,965 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:14:36.965481+00:00\r\n\r\n'
+2025-09-28 07:14:51,966 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:14:51.966599+00:00\r\n\r\n'
+2025-09-28 07:15:06,967 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:15:06.967612+00:00\r\n\r\n'
+2025-09-28 07:15:21,968 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:15:21.968496+00:00\r\n\r\n'
+2025-09-28 07:15:36,969 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:15:36.969063+00:00\r\n\r\n'
+2025-09-28 07:15:51,970 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:15:51.970561+00:00\r\n\r\n'
+2025-09-28 07:16:06,972 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:16:06.972158+00:00\r\n\r\n'
+2025-09-28 07:16:21,973 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:16:21.973009+00:00\r\n\r\n'
+2025-09-28 07:16:36,973 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:16:36.973839+00:00\r\n\r\n'
+2025-09-28 07:16:51,974 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:16:51.974506+00:00\r\n\r\n'
+2025-09-28 07:17:06,975 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:17:06.975132+00:00\r\n\r\n'
+2025-09-28 07:17:21,976 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:17:21.976078+00:00\r\n\r\n'
+2025-09-28 07:17:36,977 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:17:36.977497+00:00\r\n\r\n'
+2025-09-28 07:17:51,978 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:17:51.978493+00:00\r\n\r\n'
+2025-09-28 07:18:06,979 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:18:06.979393+00:00\r\n\r\n'
+2025-09-28 07:18:21,980 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:18:21.980130+00:00\r\n\r\n'
+2025-09-28 07:18:36,981 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:18:36.981094+00:00\r\n\r\n'
+2025-09-28 07:18:51,982 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:18:51.982403+00:00\r\n\r\n'
+2025-09-28 07:19:06,983 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:19:06.983109+00:00\r\n\r\n'
+2025-09-28 07:19:21,983 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:19:21.983844+00:00\r\n\r\n'
+2025-09-28 07:19:24,587 - sse_starlette.sse - DEBUG - Got event: http.disconnect. Stop streaming.
+2025-09-28 07:19:24,590 - mcp.server.sse - DEBUG - Setting up SSE connection
+2025-09-28 07:19:24,590 - mcp.server.sse - DEBUG - Created new session with ID: 7a9ea881-4da5-49cc-b129-11350b0568bb
+2025-09-28 07:19:24,591 - mcp.server.sse - DEBUG - Starting SSE response task
+2025-09-28 07:19:24,591 - mcp.server.sse - DEBUG - Yielding read and write streams
+INFO:     127.0.0.1:47182 - "GET /sse HTTP/1.1" 200 OK
+2025-09-28 07:19:24,593 - mcp.server.sse - DEBUG - Starting SSE writer
+2025-09-28 07:19:24,593 - mcp.server.sse - DEBUG - Sent endpoint event: /messages/?session_id=7a9ea8814da549ccb12911350b0568bb
+2025-09-28 07:19:24,594 - sse_starlette.sse - DEBUG - chunk: b'event: endpoint\r\ndata: /messages/?session_id=7a9ea8814da549ccb12911350b0568bb\r\n\r\n'
+2025-09-28 07:19:24,596 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:19:24,597 - mcp.server.sse - DEBUG - Parsed session ID: 7a9ea881-4da5-49cc-b129-11350b0568bb
+2025-09-28 07:19:24,597 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"Cline","version":"3.31.1"}},"jsonrpc":"2.0","id":0}'
+2025-09-28 07:19:24,597 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-03-26', 'capabilities': {}, 'clientInfo': {'name': 'Cline', 'version': '3.31.1'}}, jsonrpc='2.0', id=0)
+2025-09-28 07:19:24,597 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-03-26', 'capabilities': {}, 'clientInfo': {'name': 'Cline', 'version': '3.31.1'}}, jsonrpc='2.0', id=0)
+INFO:     127.0.0.1:47204 - "POST /messages/?session_id=7a9ea8814da549ccb12911350b0568bb HTTP/1.1" 202 Accepted
+2025-09-28 07:19:24,598 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:19:24,598 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c4559790>,)
+2025-09-28 07:19:24,598 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:19:24,598 - __main__ - INFO - Initializing session unknown
+2025-09-28 07:19:24,598 - __main__ - INFO - Session unknown initialized successfully
+2025-09-28 07:19:24,598 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2024-11-05', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': False}, 'resources': {'subscribe': False, 'listChanged': False}, 'tools': {'listChanged': False}}, 'serverInfo': {'name': 'mcp-crawl4ai-rag-postgrest', 'version': '1.7.1'}})
+2025-09-28 07:19:24,598 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2024-11-05","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"mcp-crawl4ai-rag-postgrest","version":"1.7.1"}}}\r\n\r\n'
+2025-09-28 07:19:24,601 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:19:24,601 - mcp.server.sse - DEBUG - Parsed session ID: 7a9ea881-4da5-49cc-b129-11350b0568bb
+2025-09-28 07:19:24,601 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"notifications/initialized","jsonrpc":"2.0"}'
+2025-09-28 07:19:24,601 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2025-09-28 07:19:24,601 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+INFO:     127.0.0.1:47210 - "POST /messages/?session_id=7a9ea8814da549ccb12911350b0568bb HTTP/1.1" 202 Accepted
+2025-09-28 07:19:24,602 - mcp.server.lowlevel.server - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2025-09-28 07:19:24,604 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:19:24,604 - mcp.server.sse - DEBUG - Parsed session ID: 7a9ea881-4da5-49cc-b129-11350b0568bb
+2025-09-28 07:19:24,604 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"tools/list","jsonrpc":"2.0","id":1}'
+2025-09-28 07:19:24,604 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)
+2025-09-28 07:19:24,604 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=1)
+INFO:     127.0.0.1:47226 - "POST /messages/?session_id=7a9ea8814da549ccb12911350b0568bb HTTP/1.1" 202 Accepted
+2025-09-28 07:19:24,605 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:19:24,605 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c455bd10>,)
+2025-09-28 07:19:24,605 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:19:24,605 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x7324c455bd10>
+2025-09-28 07:19:24,605 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-09-28 07:19:24,605 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListToolsRequest
+2025-09-28 07:19:24,605 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-09-28 07:19:24,605 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'tools': [{'name': 'get_available_sources', 'description': '\n    Get all available sources from the sources table.\n    \n    Returns:\n        JSON string with the list of available sources and their details\n    ', 'inputSchema': {'properties': {}, 'title': 'get_available_sourcesArguments', 'type': 'object'}}, {'name': 'crawl_single_page', 'description': '\n    Crawl a single web page and store its content in the database.\n    \n    This tool crawls a single webpage and stores the content in the database\n    for later retrieval and querying via RAG.\n    \n    Args:\n        url: URL of the web page to crawl\n    \n    Returns:\n        Summary of the crawling operation and storage\n    ', 'inputSchema': {'properties': {'url': {'title': 'Url', 'type': 'string'}}, 'required': ['url'], 'title': 'crawl_single_pageArguments', 'type': 'object'}}, {'name': 'smart_crawl_url', 'description': '\n    Intelligently crawl a URL based on its type and store content.\n    \n    This tool automatically detects the URL type and applies the appropriate crawling method:\n    - For sitemaps: Extracts and crawls all URLs in parallel\n    - For text files: Directly retrieves the content\n    - For regular webpages: Recursively crawls internal links up to the specified depth\n    \n    Args:\n        url: URL to crawl (can be a regular webpage, sitemap.xml, or .txt file)\n        max_depth: Maximum recursion depth for regular URLs (default: 3)\n        max_concurrent: Maximum number of concurrent sessions (default: 10)\n    \n    Returns:\n        JSON string with crawl summary and storage information\n    ', 'inputSchema': {'properties': {'url': {'title': 'Url', 'type': 'string'}, 'max_depth': {'default': 3, 'title': 'Max Depth', 'type': 'integer'}, 'max_concurrent': {'default': 10, 'title': 'Max Concurrent', 'type': 'integer'}}, 'required': ['url'], 'title': 'smart_crawl_urlArguments', 'type': 'object'}}, {'name': 'crawl_local_files', 'description': '\n    Crawl and process files from the local filesystem.\n    \n    This tool processes local files (markdown, text, HTML, etc.) and stores their content\n    in the database for RAG queries. Useful for processing local documentation.\n    \n    Args:\n        file_path: Path to file or directory to process\n        recursive: Whether to process subdirectories recursively (default: True)\n        file_extensions: Comma-separated list of file extensions to process (default: ".md,.txt,.html,.rst")\n    \n    Returns:\n        Summary of the local file processing operation\n    ', 'inputSchema': {'properties': {'file_path': {'title': 'File Path', 'type': 'string'}, 'recursive': {'default': True, 'title': 'Recursive', 'type': 'boolean'}, 'file_extensions': {'default': '.md,.txt,.html,.rst', 'title': 'File Extensions', 'type': 'string'}}, 'required': ['file_path'], 'title': 'crawl_local_filesArguments', 'type': 'object'}}, {'name': 'delete_source', 'description': "\n    Delete a source and all its associated content from the database.\n    \n    This tool removes a source and all crawled pages/code examples associated with it.\n    Use with caution as this operation cannot be undone.\n    \n    Args:\n        source_id: The source ID to delete (e.g., 'local:CPMSCF-docs', 'help.sap.com')\n    \n    Returns:\n        JSON string with deletion summary\n    ", 'inputSchema': {'properties': {'source_id': {'title': 'Source Id', 'type': 'string'}}, 'required': ['source_id'], 'title': 'delete_sourceArguments', 'type': 'object'}}, {'name': 'perform_rag_query', 'description': "\n    Perform a RAG (Retrieval Augmented Generation) query on the stored content.\n    \n    Args:\n        query: The search query\n        source: Optional source domain to filter results (e.g., 'example.com')\n        match_count: Maximum number of results to return (default: 5)\n    \n    Returns:\n        JSON string with the search results\n    ", 'inputSchema': {'properties': {'query': {'title': 'Query', 'type': 'string'}, 'source': {'default': None, 'title': 'Source', 'type': 'string'}, 'match_count': {'default': 5, 'title': 'Match Count', 'type': 'integer'}}, 'required': ['query'], 'title': 'perform_rag_queryArguments', 'type': 'object'}}]})
+2025-09-28 07:19:24,606 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"get_available_sources","description":"\\n    Get all available sources from the sources table.\\n    \\n    Returns:\\n        JSON string with the list of available sources and their details\\n    ","inputSchema":{"properties":{},"title":"get_available_sourcesArguments","type":"object"}},{"name":"crawl_single_page","description":"\\n    Crawl a single web page and store its content in the database.\\n    \\n    This tool crawls a single webpage and stores the content in the database\\n    for later retrieval and querying via RAG.\\n    \\n    Args:\\n        url: URL of the web page to crawl\\n    \\n    Returns:\\n        Summary of the crawling operation and storage\\n    ","inputSchema":{"properties":{"url":{"title":"Url","type":"string"}},"required":["url"],"title":"crawl_single_pageArguments","type":"object"}},{"name":"smart_crawl_url","description":"\\n    Intelligently crawl a URL based on its type and store content.\\n    \\n    This tool automatically detects the URL type and applies the appropriate crawling method:\\n    - For sitemaps: Extracts and crawls all URLs in parallel\\n    - For text files: Directly retrieves the content\\n    - For regular webpages: Recursively crawls internal links up to the specified depth\\n    \\n    Args:\\n        url: URL to crawl (can be a regular webpage, sitemap.xml, or .txt file)\\n        max_depth: Maximum recursion depth for regular URLs (default: 3)\\n        max_concurrent: Maximum number of concurrent sessions (default: 10)\\n    \\n    Returns:\\n        JSON string with crawl summary and storage information\\n    ","inputSchema":{"properties":{"url":{"title":"Url","type":"string"},"max_depth":{"default":3,"title":"Max Depth","type":"integer"},"max_concurrent":{"default":10,"title":"Max Concurrent","type":"integer"}},"required":["url"],"title":"smart_crawl_urlArguments","type":"object"}},{"name":"crawl_local_files","description":"\\n    Crawl and process files from the local filesystem.\\n    \\n    This tool processes local files (markdown, text, HTML, etc.) and stores their content\\n    in the database for RAG queries. Useful for processing local documentation.\\n    \\n    Args:\\n        file_path: Path to file or directory to process\\n        recursive: Whether to process subdirectories recursively (default: True)\\n        file_extensions: Comma-separated list of file extensions to process (default: \\".md,.txt,.html,.rst\\")\\n    \\n    Returns:\\n        Summary of the local file processing operation\\n    ","inputSchema":{"properties":{"file_path":{"title":"File Path","type":"string"},"recursive":{"default":true,"title":"Recursive","type":"boolean"},"file_extensions":{"default":".md,.txt,.html,.rst","title":"File Extensions","type":"string"}},"required":["file_path"],"title":"crawl_local_filesArguments","type":"object"}},{"name":"delete_source","description":"\\n    Delete a source and all its associated content from the database.\\n    \\n    This tool removes a source and all crawled pages/code examples associated with it.\\n    Use with caution as this operation cannot be undone.\\n    \\n    Args:\\n        source_id: The source ID to delete (e.g., \'local:CPMSCF-docs\', \'help.sap.com\')\\n    \\n    Returns:\\n        JSON string with deletion summary\\n    ","inputSchema":{"properties":{"source_id":{"title":"Source Id","type":"string"}},"required":["source_id"],"title":"delete_sourceArguments","type":"object"}},{"name":"perform_rag_query","description":"\\n    Perform a RAG (Retrieval Augmented Generation) query on the stored content.\\n    \\n    Args:\\n        query: The search query\\n        source: Optional source domain to filter results (e.g., \'example.com\')\\n        match_count: Maximum number of results to return (default: 5)\\n    \\n    Returns:\\n        JSON string with the search results\\n    ","inputSchema":{"properties":{"query":{"title":"Query","type":"string"},"source":{"default":null,"title":"Source","type":"string"},"match_count":{"default":5,"title":"Match Count","type":"integer"}},"required":["query"],"title":"perform_rag_queryArguments","type":"object"}}]}}\r\n\r\n'
+2025-09-28 07:19:24,609 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:19:24,609 - mcp.server.sse - DEBUG - Parsed session ID: 7a9ea881-4da5-49cc-b129-11350b0568bb
+2025-09-28 07:19:24,609 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"resources/list","jsonrpc":"2.0","id":2}'
+2025-09-28 07:19:24,609 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='resources/list', params=None, jsonrpc='2.0', id=2)
+2025-09-28 07:19:24,609 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='resources/list', params=None, jsonrpc='2.0', id=2)
+INFO:     127.0.0.1:47238 - "POST /messages/?session_id=7a9ea8814da549ccb12911350b0568bb HTTP/1.1" 202 Accepted
+2025-09-28 07:19:24,610 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:19:24,610 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c455aff0>,)
+2025-09-28 07:19:24,610 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:19:24,610 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x7324c455aff0>
+2025-09-28 07:19:24,610 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2025-09-28 07:19:24,610 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListResourcesRequest
+2025-09-28 07:19:24,610 - mcp.server.fastmcp.resources.resource_manager - DEBUG - Listing resources
+2025-09-28 07:19:24,610 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-09-28 07:19:24,610 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'resources': []})
+2025-09-28 07:19:24,610 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":2,"result":{"resources":[]}}\r\n\r\n'
+2025-09-28 07:19:24,613 - mcp.server.sse - DEBUG - Handling POST message
+2025-09-28 07:19:24,613 - mcp.server.sse - DEBUG - Parsed session ID: 7a9ea881-4da5-49cc-b129-11350b0568bb
+2025-09-28 07:19:24,613 - mcp.server.sse - DEBUG - Received JSON: b'{"method":"resources/templates/list","jsonrpc":"2.0","id":3}'
+2025-09-28 07:19:24,613 - mcp.server.sse - DEBUG - Validated client message: root=JSONRPCRequest(method='resources/templates/list', params=None, jsonrpc='2.0', id=3)
+2025-09-28 07:19:24,613 - mcp.server.sse - DEBUG - Sending message to writer: root=JSONRPCRequest(method='resources/templates/list', params=None, jsonrpc='2.0', id=3)
+INFO:     127.0.0.1:47242 - "POST /messages/?session_id=7a9ea8814da549ccb12911350b0568bb HTTP/1.1" 202 Accepted
+2025-09-28 07:19:24,614 - __main__ - DEBUG - Received request for session unknown
+2025-09-28 07:19:24,614 - __main__ - DEBUG - Request args: (<mcp.shared.session.RequestResponder object at 0x7324c4559b50>,)
+2025-09-28 07:19:24,614 - __main__ - DEBUG - Request kwargs: {}
+2025-09-28 07:19:24,614 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x7324c4559b50>
+2025-09-28 07:19:24,614 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourceTemplatesRequest
+2025-09-28 07:19:24,614 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListResourceTemplatesRequest
+2025-09-28 07:19:24,614 - mcp.server.fastmcp.resources.resource_manager - DEBUG - Listing templates
+2025-09-28 07:19:24,614 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-09-28 07:19:24,614 - mcp.server.sse - DEBUG - Sending message via SSE: root=JSONRPCResponse(jsonrpc='2.0', id=3, result={'resourceTemplates': []})
+2025-09-28 07:19:24,614 - sse_starlette.sse - DEBUG - chunk: b'event: message\r\ndata: {"jsonrpc":"2.0","id":3,"result":{"resourceTemplates":[]}}\r\n\r\n'
+2025-09-28 07:19:39,594 - sse_starlette.sse - DEBUG - ping: b': ping - 2025-09-28 07:19:39.594223+00:00\r\n\r\n'
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+./start-mcp-crawl4ai.sh: line 189: 1792737 Killed                  PYTHONPATH=$PYTHONPATH:$(pwd) python src/crawl4ai_mcp.py
+
+🛑 Shutting down MCP server...
+

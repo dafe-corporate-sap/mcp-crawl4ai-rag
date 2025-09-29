@@ -425,8 +425,11 @@ async def crawl_local_files(file_path: str, recursive: bool = True, file_extensi
         if src_path not in sys.path:
             sys.path.append(src_path)
         
+        logger.info("Imported required modules and added src directory to path")
+        
         # Validate file path
         if not file_path or not file_path.strip():
+            logger.error("Invalid file path provided")
             return json.dumps({
                 "success": False,
                 "error": "File path cannot be empty"
@@ -910,6 +913,7 @@ async def perform_rag_query(query: str, source: str = None, match_count: int = 5
 
 async def main():
     """Main function to run the MCP server."""
+    server_task = None
     try:
         logger.info("Starting MCP server with PostgREST integration...")
         logger.info(f"Server will be available on http://0.0.0.0:8051")
@@ -933,13 +937,43 @@ async def main():
         except Exception as aicore_error:
             logger.error(f"Failed to connect to SAP BTP AICore: {aicore_error}")
         
-        await mcp.run_sse_async()
+        # Set up signal handlers for graceful shutdown
+        import signal
+        
+        def signal_handler(signum, frame):
+            logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+            if server_task and not server_task.done():
+                server_task.cancel()
+        
+        # Register signal handlers
+        signal.signal(signal.SIGTERM, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
+        
+        # Run the server with proper cancellation handling
+        server_task = asyncio.create_task(mcp.run_sse_async())
+        await server_task
         
     except KeyboardInterrupt:
-        logger.info("Shutting down MCP server...")
+        logger.info("Received KeyboardInterrupt, shutting down MCP server...")
+    except asyncio.CancelledError:
+        logger.info("Server task cancelled, shutting down gracefully...")
     except Exception as e:
         logger.error(f"Fatal error in MCP server: {e}")
         raise
+    finally:
+        # Ensure proper cleanup
+        if server_task and not server_task.done():
+            logger.info("Cancelling server task...")
+            server_task.cancel()
+            try:
+                await server_task
+            except asyncio.CancelledError:
+                logger.info("Server task cancelled successfully")
+        
+        # Close any remaining connections
+        logger.info("Performing final cleanup...")
+        await asyncio.sleep(0.1)  # Give time for connections to close
+        logger.info("MCP server shutdown complete")
 
 # Add a new function to handle incoming connections
 async def handle_connection(request):

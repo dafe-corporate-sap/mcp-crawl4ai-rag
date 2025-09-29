@@ -1,0 +1,127 @@
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3A%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3A%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3A%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3A%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3A%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Usage: python3 mcp_client.py <operation> <args>
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3A%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Usage: python3 mcp_client.py <operation> <args>
+Usage: python3 mcp_client.py <operation> <args>
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Usage: python3 mcp_client.py <operation> <args>
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Starting crawl_local_files operation for path: /home/i039818/kms/kms-docs-main
+Crawl parameters: {
+  "server": "mcp-crawl4ai-rag-postgrest",
+  "tool": "crawl_local_files",
+  "args": "{\"file_path\": \"/home/i039818/kms/kms-docs-main\", \"recursive\": true, \"file_extensions\": \".md,.txt,.html,.rst\"}"
+}
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=crawl_local_files&args=%7B%22file_path%22%3A+%22%2Fhome%2Fi039818%2Fkms%2Fkms-docs-main%22%2C+%22recursive%22%3A+true%2C+%22file_extensions%22%3A+%22.md%2C.txt%2C.html%2C.rst%22%7D
+Response status code: 200
+Received event: endpoint
+Connecting to URL: http://localhost:8051/sse?server=mcp-crawl4ai-rag-postgrest&tool=delete_source&args=%7B%22source_id%22%3A+%22local%3Akms-docs-main%22%7D
+Response status code: 200
+Received event: endpoint
+Usage: python3 mcp_client.py <operation> <args>
+Unknown operation: perform_rag_query
+Usage: python3 mcp_client.py <operation> <args>

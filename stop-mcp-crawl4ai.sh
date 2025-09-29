@@ -31,16 +31,34 @@ stop_mcp_server() {
     
     if [ -n "$MCP_PIDS" ]; then
         echo "🛑 Stopping MCP server processes: $MCP_PIDS"
+        
+        # First try graceful shutdown with SIGTERM
+        echo "📤 Sending SIGTERM for graceful shutdown..."
         echo "$MCP_PIDS" | xargs kill -TERM 2>/dev/null || true
         
-        # Wait a moment for graceful shutdown
-        sleep 3
+        # Wait longer for graceful shutdown (increased from 3 to 10 seconds)
+        echo "⏳ Waiting 10 seconds for graceful shutdown..."
+        sleep 10
         
-        # Force kill if still running
+        # Check if processes are still running
         MCP_PIDS=$(pgrep -f "src.crawl4ai_mcp" 2>/dev/null || true)
         if [ -n "$MCP_PIDS" ]; then
-            echo "⚠️ Force killing remaining MCP server processes: $MCP_PIDS"
-            echo "$MCP_PIDS" | xargs kill -KILL 2>/dev/null || true
+            echo "⚠️ Processes still running, trying SIGINT..."
+            echo "$MCP_PIDS" | xargs kill -INT 2>/dev/null || true
+            
+            # Wait another 5 seconds
+            echo "⏳ Waiting 5 more seconds..."
+            sleep 5
+            
+            # Final check and force kill if necessary
+            MCP_PIDS=$(pgrep -f "src.crawl4ai_mcp" 2>/dev/null || true)
+            if [ -n "$MCP_PIDS" ]; then
+                echo "⚠️ Force killing remaining MCP server processes: $MCP_PIDS"
+                echo "$MCP_PIDS" | xargs kill -KILL 2>/dev/null || true
+                
+                # Final wait to ensure processes are gone
+                sleep 2
+            fi
         fi
         
         echo "✅ MCP server processes stopped"

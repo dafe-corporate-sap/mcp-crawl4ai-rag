@@ -9,15 +9,17 @@ StartLimitIntervalSec=0
 Type=simple
 User=aitoolset
 Group=aitoolset
-WorkingDirectory=/home/aitoolset/MCP/mcp-crawl4ai-rag
-Environment=PATH=/home/aitoolset/MCP/mcp-crawl4ai-rag/.venv/bin:/home/aitoolset/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-Environment=PYTHONPATH=/home/aitoolset/MCP/mcp-crawl4ai-rag
-EnvironmentFile=/home/aitoolset/MCP/mcp-crawl4ai-rag/.env
-ExecStartPre=/home/aitoolset/MCP/mcp-crawl4ai-rag/.venv/bin/python /home/aitoolset/MCP/mcp-crawl4ai-rag/setup_local_supabase.py
-ExecStart=/home/aitoolset/MCP/mcp-crawl4ai-rag/.venv/bin/python /home/aitoolset/MCP/mcp-crawl4ai-rag/src/crawl4ai_mcp.py
-ExecStop=/usr/bin/docker compose -f /home/aitoolset/MCP/mcp-crawl4ai-rag/docker-compose.yml down
+WorkingDirectory=/home/aitoolset/mcp-crawl4ai-rag
+Environment=PATH=/home/aitoolset/mcp-crawl4ai-rag/.venv/bin:/home/aitoolset/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PYTHONPATH=/home/aitoolset/mcp-crawl4ai-rag
+EnvironmentFile=/home/aitoolset/mcp-crawl4ai-rag/.env
+ExecStartPre=/home/aitoolset/mcp-crawl4ai-rag/.venv/bin/python /home/aitoolset/mcp-crawl4ai-rag/setup_local_supabase.py
+ExecStart=/home/aitoolset/mcp-crawl4ai-rag/.venv/bin/python /home/aitoolset/mcp-crawl4ai-rag/src/crawl4ai_mcp.py
+ExecStop=/usr/bin/docker compose -f /home/aitoolset/mcp-crawl4ai-rag/docker-compose.yml down
 Restart=always
 RestartSec=5
+TimeoutStopSec=30
+KillMode=mixed
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=mcp-crawl4ai-rag

@@ -53,7 +53,7 @@ class SAPDocumentationCrawler:
     
     def load_pages_list(self) -> List[str]:
         """Load the list of pages to crawl from the text file."""
-        pages_file = Path("/home/i039818/mobileservices/sap_mobile_services_pages.txt")
+        pages_file = Path("/home/aitoolset/mobileservices/sap_mobile_services_pages.txt")
         if not pages_file.exists():
             raise FileNotFoundError("sap_mobile_services_pages.txt not found")
         
@@ -86,7 +86,7 @@ class SAPDocumentationCrawler:
         import os
         
         # Add the MCP server source directory to Python path
-        mcp_src_path = "/home/i039818/Cline/MCP/mcp-crawl4ai-rag/src"
+        mcp_src_path = "/home/aitoolset/MCP/mcp-crawl4ai-rag/src"
         if mcp_src_path not in sys.path:
             sys.path.insert(0, mcp_src_path)
         

@@ -14,7 +14,7 @@ BASE_URL = "https://help.sap.com/doc/f53c64b93e5140918d676b927a3cd65b/Cloud/en-U
 
 def load_pages_list():
     """Load the list of pages to crawl from the text file."""
-    pages_file = Path("/home/i039818/mobileservices/sap_mobile_services_pages.txt")
+    pages_file = Path("/home/aitoolset/mobileservices/sap_mobile_services_pages.txt")
     if not pages_file.exists():
         raise FileNotFoundError("sap_mobile_services_pages.txt not found")
     

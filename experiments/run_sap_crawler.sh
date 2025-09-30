@@ -9,14 +9,14 @@ echo "========================================"
 echo ""
 
 # Check if the pages list file exists
-if [ ! -f "/home/i039818/mobileservices/sap_mobile_services_pages.txt" ]; then
+if [ ! -f "/home/aitoolset/mobileservices/sap_mobile_services_pages.txt" ]; then
     echo "Error: sap_mobile_services_pages.txt not found!"
     echo "Please run the page extraction first."
     exit 1
 fi
 
 # Count pages
-PAGE_COUNT=$(wc -l < /home/i039818/mobileservices/sap_mobile_services_pages.txt)
+PAGE_COUNT=$(wc -l < /home/aitoolset/mobileservices/sap_mobile_services_pages.txt)
 echo "Found $PAGE_COUNT pages to crawl"
 echo ""
 

@@ -22,7 +22,7 @@ This directory contains a comprehensive crawler system for recursively crawling 
 
 ### Data Files
 
-- **`/home/i039818/mobileservices/sap_mobile_services_pages.txt`** - List of 696 discovered pages
+- **`/home/aitoolset/mobileservices/sap_mobile_services_pages.txt`** - List of 696 discovered pages
 - **`sap_crawler.log`** - Detailed crawling logs
 - **`crawl_progress.json`** - Real-time progress tracking
 - **`sap_mobile_services_crawl_final_summary.json`** - Final crawling summary
@@ -39,14 +39,14 @@ This directory contains a comprehensive crawler system for recursively crawling 
 ### Option 1: Use the Shell Script (Recommended)
 
 ```bash
-cd /home/i039818/Cline/MCP/mcp-crawl4ai-rag
+cd /home/aitoolset/MCP/mcp-crawl4ai-rag
 ./run_sap_crawler.sh
 ```
 
 ### Option 2: Run Python Directly
 
 ```bash
-cd /home/i039818/Cline/MCP/mcp-crawl4ai-rag
+cd /home/aitoolset/MCP/mcp-crawl4ai-rag
 python3 background_crawler.py
 ```
 
